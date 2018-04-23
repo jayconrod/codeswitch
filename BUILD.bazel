@@ -1,0 +1,5 @@
+cc_library(
+    name = "codeswitch",
+    hdrs = ["codeswitch.h"],
+    visibility = ["//visibility:public"],
+)
