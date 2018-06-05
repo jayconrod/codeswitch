@@ -1,0 +1,28 @@
+cc_library(
+    name = "memory",
+    srcs = [
+        "bitmap.cpp",
+        "chunk.cpp",
+    ],
+    hdrs = [
+        "bitmap.h",
+        "block.h",
+        "chunk.h",
+        "heap.h",
+    ],
+    visibility = ["//:__subpackages__"],
+    deps = [
+        "//common",
+        "//platform",
+    ],
+)
+
+cc_test(
+    name = "memory_test",
+    srcs = ["bitmap_test.cpp"],
+    deps = [
+        ":memory",
+        "//common",
+        "//test",
+    ],
+)
