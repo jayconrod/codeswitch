@@ -40,6 +40,24 @@ class Test {
   bool passed_ = true;
 };
 
+#define ASSERT_TRUE(exp)            \
+  do {                              \
+    if (!(exp)) {                   \
+      std::stringstream ss;         \
+      ss << #exp << " is not true"; \
+      t.fatal(ss.str());            \
+    }                               \
+  } while (false)
+
+#define ASSERT_FALSE(exp)            \
+  do {                               \
+    if (exp) {                       \
+      std::stringstream ss;          \
+      ss << #exp << " is not false"; \
+      t.fatal(ss.str());             \
+    }                                \
+  } while (false)
+
 #define ASSERT_EQ(lexp, rexp) \
   do {                        \
     auto l = (lexp);          \
