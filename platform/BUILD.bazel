@@ -1,0 +1,15 @@
+config_setting(
+    name = "linux",
+    values = {"cpu": "k8"},
+    visibility = ["//:__subpackages__"],
+)
+
+cc_library(
+    name = "platform",
+    srcs = select({
+        ":linux": ["platform_posix.cpp"],
+    }),
+    hdrs = ["platform.h"],
+    deps = ["//common"],
+    visibility = ["//:__subpackages__"],
+)
