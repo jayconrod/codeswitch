@@ -3,6 +3,7 @@ cc_library(
     srcs = [
         "bitmap.cpp",
         "chunk.cpp",
+        "heap.cpp",
     ],
     hdrs = [
         "bitmap.h",
@@ -19,7 +20,10 @@ cc_library(
 
 cc_test(
     name = "memory_test",
-    srcs = ["bitmap_test.cpp"],
+    srcs = [
+        "bitmap_test.cpp",
+        "heap_test.cpp",
+    ],
     deps = [
         ":memory",
         "//common",

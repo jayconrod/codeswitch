@@ -5,48 +5,31 @@
 
 #include "heap.h"
 
+#include <mutex>
+#include <vector>
 #include "block.h"
 
-using namespace std;
+using std::lock_guard;
+using std::max;
+using std::move;
+using std::mutex;
+using std::unique_ptr;
+using std::vector;
 
 namespace codeswitch {
 namespace internal {
 
-address Heap::allocate(word_t size) {
-  size = align(size, kWordSize);
-  if (size > Chunk::kMaxBlockSize) {
-    throw AllocationError(false);
-  }
+thread_local Heap::Allocator Heap::allocator_ = {0};
 
-  // TODO: optimize this a lot.
-  lock_guard lock(mut_);
-
+address Heap::allocateSlow(word_t size) {
+  lock_guard<mutex> lock(mut_);
+  freeAllocator(&allocator_);
   while (true) {  // retry
-    // Iterate over the free list in each chunk to find a large enough contiguous range.
-    for (auto& chunk : chunks_) {
-      auto prevp = &chunk->freeListHead_;
-      auto free = *prevp;
-      while (free != nullptr) {
-        if (free->size() >= size) {
-          auto addr = reinterpret_cast<address>(free);
-          if (free->size() - size < sizeof(Free)) {
-            *prevp = free->next_;
-          } else {
-            auto newFreeAddr = reinterpret_cast<void*>(addr + size);
-            auto newFreeSize = free->size() - size;
-            free = new (newFreeAddr, newFreeSize) Free(free->next_);
-            *prevp = free;
-          }
-          return addr;
-        }
-        prevp = &free->next_;
-        free = free->next_;
-      }
+    if (fillAllocator(&allocator_, size)) {
+      return allocator_.allocate(size);
     }
-
-    // Allocate a new chunk.
     // TODO: collect garbage.
-    chunks_.emplace_back(unique_ptr<Chunk>(new Chunk));
+    addChunk();
 
     // Retry.
   }
@@ -55,5 +38,36 @@ address Heap::allocate(word_t size) {
 void Heap::recordWrite(address from, address to) {}
 
 void Heap::collectGarbage() {}
+
+void Heap::freeAllocator(Allocator* alloc) {
+  alloc->next = 0;
+  alloc->size = 0;
+  // TODO: release memory reserved by allocator
 }
+
+bool Heap::fillAllocator(Allocator* alloc, word_t size) {
+  if (size < kDefaultAllocatorSize) {
+    size = kDefaultAllocatorSize;
+  }
+  for (auto& chunk : chunks_) {
+    auto addr = chunk->allocate(size);
+    if (addr != 0) {
+      allocator_.next = addr;
+      allocator_.size = size;
+      return true;
+    }
+  }
+  return false;
 }
+
+void Heap::addChunk() {
+  unique_ptr<Chunk> chunk(new Chunk);
+  auto free = new (reinterpret_cast<void*>(chunk->data()), chunk->dataSize()) Free(nullptr);
+  chunk->setFreeListHead(free);
+
+  lock_guard<mutex> lock(mut_);
+  chunks_.emplace_back(move(chunk));
+}
+
+}  // namespace internal
+}  // namespace codeswitch

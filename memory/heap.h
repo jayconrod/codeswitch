@@ -6,7 +6,9 @@
 #ifndef heap_h
 #define heap_h
 
+#include <memory>
 #include <mutex>
+#include <vector>
 #include "chunk.h"
 #include "common/common.h"
 
@@ -43,13 +45,15 @@ class Heap {
  public:
   NON_COPYABLE(Heap)
 
+  Heap() {}
+
   /**
    * Allocates a zero-initialized block of memory of the given size.
    *
    * @returns address of the allocated memory.
    * @throws AllocationError if the block couldn't be allocated.
    */
-  address allocate(word_t size);
+  inline address allocate(word_t size);
 
   /**
    * Notifies the garbage collector that a pointer was written into a block.
@@ -62,17 +66,60 @@ class Heap {
 
   template <class T>
   static void recordWrite(T** from, T* to) {
-    recordWrite(reinterpret_cast<address>(from), reinterpret_cast<address>(to);
+    recordWrite(reinterpret_cast<address>(from), reinterpret_cast<address>(to));
   }
 
   /** Reclaim memory used by blocks that are no longer reachable. */
   void collectGarbage();
 
  private:
+  static const word_t kDefaultAllocatorSize = 64 * KB;
+
+  struct Allocator {
+    inline bool canAllocate(word_t s);
+    inline address allocate(word_t s);
+
+    address next;
+    word_t size;
+  };
+
+  address allocateSlow(word_t size);
+  void freeAllocator(Allocator* alloc);
+  bool fillAllocator(Allocator* alloc, word_t size);
+
+  void addChunk();
+
   std::mutex mut_;
   std::vector<std::unique_ptr<Chunk>> chunks_;
+  static thread_local Allocator allocator_;
 };
+
+address Heap::allocate(size_t size) {
+  ASSERT(size > 0);
+  size = align(size, kWordSize);
+  if (size > Chunk::kMaxBlockSize) {
+    // TODO: support large allocations
+    throw AllocationError(false);
+  }
+
+  if (allocator_.canAllocate(size)) {
+    return allocator_.allocate(size);
+  }
+  return allocateSlow(size);
 }
+
+bool Heap::Allocator::canAllocate(word_t s) {
+  return s <= size;
 }
+
+address Heap::Allocator::allocate(word_t s) {
+  auto a = next;
+  next += s;
+  size -= s;
+  return a;
+}
+
+}  // namespace internal
+}  // namespace codeswitch
 
 #endif
