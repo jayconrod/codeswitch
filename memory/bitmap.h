@@ -36,7 +36,7 @@ class Bitmap {
   word_t* base_;
   word_t bitCount_;
 };
-}
-}
+}  // namespace internal
+}  // namespace codeswitch
 
 #endif

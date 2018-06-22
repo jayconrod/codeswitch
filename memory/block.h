@@ -15,7 +15,7 @@ namespace internal {
   V(Meta)                  \
   V(Free)
 
-#define ENUM_BLOCK_TYPE(Name, NAME) k##Name##BlockType,
+#define ENUM_BLOCK_TYPE(Name) k##Name##BlockType,
 enum BlockType {
   // clang-format off
   BLOCK_TYPE_LIST(ENUM_BLOCK_TYPE)
@@ -41,6 +41,8 @@ class Block {
  public:
   explicit Block(Meta* meta) : meta_(meta) {}
 
+  Meta* meta() const { return meta_; }
+
  private:
   Meta* meta_;
 };
@@ -58,18 +60,18 @@ class Block {
  */
 class Meta : public Block {
  public:
-  static const kBlockType = kMetaBlockType;
+  static const BlockType kBlockType = kMetaBlockType;
 
   void* operator new(size_t, Heap* heap, length_t dataLength, word_t objectSize, word_t elementSize);
-  explicit Meta(BlockType blockType) : Block(kMetaBlockType), blockType_(blockType) {}
+  explicit Meta(BlockType blockType) : Block(nullptr), blockType_(blockType) {}
+
+  BlockType blockType() const { return blockType_; }
 
  private:
-  length_t length_;
-
   typedef uint8_t flags_t;
   static const flags_t kHasPointers = 1 << 0;
   static const flags_t kHasElements = 1 << 1;
-  static const flags_t kHasElementPointers 1 << 2;
+  static const flags_t kHasElementPointers = 1 << 2;
 
   length_t length_;
   BlockType blockType_ : 8;
@@ -84,12 +86,12 @@ class Meta : public Block {
 /**
  * Free represents a node in the free list.
  */
-class Free {
+class Free : public Block {
  public:
-  static const kBlockType = kFreeBlockType;
+  static const BlockType kBlockType = kFreeBlockType;
 
-  void* operator new(size_t, void* place, word_t size);
-  explicit Free(Free* next) : Block(kFreeBlockType), next_(next) {}
+  inline void* operator new(size_t, void* place, word_t size);
+  explicit Free(Free* next) : Block(nullptr), next_(next) {}
 
   word_t size() const { return size_; }
   Free* next() const { return next_; }
@@ -99,15 +101,22 @@ class Free {
   word_t size_;
   Free* next_;
 
-  class Heap;
+  friend class Chunk;
 };
+
+void* Free::operator new(size_t, void* place, word_t size) {
+  auto free = reinterpret_cast<Free*>(place);
+  free->size_ = size;
+  free->next_ = nullptr;
+  return place;
+}
 
 /** Returns whether a block is an instance of a given block type. */
 template <class T>
 bool isa(const Block* block) {
   return block->meta()->blockType() == T::kBlockType;
 }
-}
-}
+}  // namespace internal
+}  // namespace codeswitch
 
 #endif
