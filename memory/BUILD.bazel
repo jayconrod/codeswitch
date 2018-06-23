@@ -4,12 +4,14 @@ cc_library(
         "bitmap.cpp",
         "chunk.cpp",
         "heap.cpp",
+        "roots.cpp",
     ],
     hdrs = [
         "bitmap.h",
         "block.h",
         "chunk.h",
         "heap.h",
+        "roots.h",
     ],
     visibility = ["//:__subpackages__"],
     deps = [

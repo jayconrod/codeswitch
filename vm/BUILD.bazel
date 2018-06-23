@@ -1,0 +1,10 @@
+cc_library(
+    name = "vm",
+    hdrs = ["vm.h"],
+    srcs = ["vm.cpp"],
+    deps = [
+        "//common",
+        "//memory",
+    ],
+    visibility = ["//:__subpackages__"],
+)
