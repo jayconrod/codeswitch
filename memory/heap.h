@@ -53,7 +53,7 @@ class Heap {
    * @returns address of the allocated memory.
    * @throws AllocationError if the block couldn't be allocated.
    */
-  inline address allocate(word_t size);
+  inline void* allocate(word_t size);
 
   /**
    * Notifies the garbage collector that a pointer was written into a block.
@@ -72,6 +72,9 @@ class Heap {
   /** Reclaim memory used by blocks that are no longer reachable. */
   void collectGarbage();
 
+  void enter();
+  void leave();
+
  private:
   static const word_t kDefaultAllocatorSize = 64 * KB;
 
@@ -83,7 +86,7 @@ class Heap {
     word_t size;
   };
 
-  address allocateSlow(word_t size);
+  void* allocateSlow(word_t size);
   void freeAllocator(Allocator* alloc);
   bool fillAllocator(Allocator* alloc, word_t size);
 
@@ -92,9 +95,11 @@ class Heap {
   std::mutex mut_;
   std::vector<std::unique_ptr<Chunk>> chunks_;
   static thread_local Allocator allocator_;
+
+  friend class VM;
 };
 
-address Heap::allocate(size_t size) {
+void* Heap::allocate(size_t size) {
   ASSERT(size > 0);
   size = align(size, kWordSize);
   if (size > Chunk::kMaxBlockSize) {
@@ -103,7 +108,7 @@ address Heap::allocate(size_t size) {
   }
 
   if (allocator_.canAllocate(size)) {
-    return allocator_.allocate(size);
+    return reinterpret_cast<void*>(allocator_.allocate(size));
   }
   return allocateSlow(size);
 }

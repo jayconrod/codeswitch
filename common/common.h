@@ -59,11 +59,24 @@ void abort(const char* fileName, int lineNumber, const char* reason, ...);
 
 #define ABORT(reason) abort(__FILE__, __LINE__, (reason))
 
+#define USE(e) (void)(e)
+
+#define CHECK_SUBTYPE_VALUE(type, value) \
+  do {                                   \
+    if (false) {                         \
+      type _t = (value);                 \
+      USE(_t);                           \
+    }                                    \
+  } while (0)
+
 #define NON_COPYABLE(T)            \
   T(const T&) = delete;            \
   T& operator=(const T&) = delete; \
   T(T&&) = delete;                 \
   T& operator=(T&&) = delete;
+
+const word_t kGarbageHandle = 0xDEADBEEFul;
+
 }  // namespace internal
 }  // namespace codeswitch
 

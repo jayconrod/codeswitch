@@ -1,10 +1,18 @@
 cc_library(
     name = "vm",
     hdrs = ["vm.h"],
-    srcs = ["vm.cpp"],
     deps = [
         "//common",
+    ],
+    visibility = ["//:__subpackages__"],
+)
+
+cc_library(
+    name = "vm_impl",
+    srcs = ["vm.cpp"],
+    deps = [
         "//memory",
+        "//vm",
     ],
     visibility = ["//:__subpackages__"],
 )

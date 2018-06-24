@@ -9,6 +9,7 @@
 
 #include "block.h"
 #include "platform/platform.h"
+#include "vm/vm.h"
 
 using std::lock_guard;
 using std::mutex;
@@ -24,6 +25,8 @@ void* Chunk::operator new(size_t size) {
 void Chunk::operator delete(void* addr) {
   freeChunk(addr, sizeof(Chunk));
 }
+
+Chunk::Chunk() : vm_(VM::current()) {}
 
 address Chunk::allocate(word_t size) {
   lock_guard<mutex> lock(mut_);

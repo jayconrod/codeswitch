@@ -5,9 +5,15 @@
 
 #include "block.h"
 
+#include "heap.h"
+
 namespace codeswitch {
 namespace internal {
 
-Meta::Meta(Bitmap ptrMap, Bitmap elementPtrMap, length_t dataCount, word_t
+void* Meta::operator new(size_t, Heap* heap, length_t dataLength, word_t objectSize, word_t elementSize) {
+  auto size = sizeof(Meta) + sizeof(word_t) * dataLength;
+  return heap->allocate(size);
 }
-}
+
+}  // namespace internal
+}  // namespace codeswitch

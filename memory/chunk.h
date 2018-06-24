@@ -18,6 +18,7 @@ namespace codeswitch {
 namespace internal {
 
 class Free;
+class VM;
 
 /**
  * A Chunk is an aligned region of memory allocated from the kernel using mmap or some
@@ -35,10 +36,12 @@ class Chunk {
   static const word_t kMinFreeSize = 64;
   void* operator new(size_t size);
   void operator delete(void* addr);
-  Chunk() {}
+  Chunk();
 
   static Chunk* fromAddress(const void* p);
   static Chunk* fromAddress(address addr);
+
+  VM* vm() const { return vm_; }
 
   address allocate(word_t size);
   Free* freeListHead() { return freeListHead_; }
@@ -51,10 +54,11 @@ class Chunk {
 
  private:
   // Header fields. Make sure kHeaderSize matches.
+  VM* vm_;
   std::mutex mut_;
   Free* freeListHead_ = nullptr;
 
-  static const word_t kHeaderSize = sizeof(mut_) + sizeof(freeListHead_);
+  static const word_t kHeaderSize = sizeof(vm_) + sizeof(mut_) + sizeof(freeListHead_);
   static const word_t kBitmapWords = kSize / 64 / kBitsInWord;
   static const word_t kDataWords = (kSize - kHeaderSize) / kWordSize - 2 * kBitmapWords;
   static_assert(kDataWords * kWordSize >= kMaxBlockSize, "chunk data size < kMaxBlockSize");

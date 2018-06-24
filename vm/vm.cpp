@@ -5,13 +5,38 @@
 
 #include "vm.h"
 
+#include "memory/handle.h"
 #include "memory/heap.h"
 #include "memory/roots.h"
 
 namespace codeswitch {
 namespace internal {
 
-VM::VM() : heap_(new Heap), roots_(new Roots(heap_.get())) {}
+VM::VM() : handleStorage_(new HandleStorage()), heap_(new Heap), roots_(new Roots(heap_.get())) {}
 
+VM::~VM() {
+  ASSERT(current_ == nullptr);
+}
+
+void VM::enter() {
+  ASSERT(current_ == nullptr);
+  current_ = this;
+  heap_->enter();
+  handleStorage_->enter();
+}
+
+void VM::leave() {
+  ASSERT(current_ != nullptr);
+  handleStorage_->leave();
+  heap_->leave();
+  current_ = nullptr;
+}
+
+VM* VM::current() {
+  ASSERT(current_ != nullptr);
+  return current_;
+}
+
+thread_local VM* VM::current_ = nullptr;
 }  // namespace internal
 }  // namespace codeswitch
