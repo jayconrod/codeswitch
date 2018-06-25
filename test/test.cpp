@@ -7,11 +7,15 @@
 
 #include <cstdarg>
 #include <cstdio>
+#include <exception>
 #include <iostream>
 #include <vector>
 
+#include "common/common.h"
+
 using std::cerr;
 using std::endl;
+using std::exception;
 using std::vector;
 
 int main() {
@@ -27,12 +31,16 @@ vector<TestCase> testCases;
 class TestFatal {};
 
 bool TestRunner::Run() {
+  abortThrowException = true;
+  abortBacktrace = true;
   bool passedAll = true;
   for (auto tc : testCases) {
     Test t(tc.name);
     try {
       tc.fn(t);
     } catch (TestFatal) {
+    } catch (exception& x) {
+      t.fatal(x.what());
     }
     if (!t.passed()) {
       passedAll = false;

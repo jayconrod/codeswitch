@@ -21,12 +21,12 @@ namespace internal {
 
 thread_local Heap::Allocator Heap::allocator_ = {0};
 
-address Heap::allocateSlow(word_t size) {
+void* Heap::allocateSlow(word_t size) {
   lock_guard<mutex> lock(mut_);
   freeAllocator(&allocator_);
   while (true) {  // retry
     if (fillAllocator(&allocator_, size)) {
-      return allocator_.allocate(size);
+      return reinterpret_cast<void*>(allocator_.allocate(size));
     }
     // TODO: collect garbage.
     addChunk();
@@ -38,6 +38,12 @@ address Heap::allocateSlow(word_t size) {
 void Heap::recordWrite(address from, address to) {}
 
 void Heap::collectGarbage() {}
+
+void Heap::enter() {}
+
+void Heap::leave() {
+  freeAllocator(&allocator_);
+}
 
 void Heap::freeAllocator(Allocator* alloc) {
   alloc->next = 0;
