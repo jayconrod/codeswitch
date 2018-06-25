@@ -34,5 +34,6 @@ cc_test(
         ":memory",
         "//common",
         "//test",
+        "//vm:vm_impl",
     ],
 )

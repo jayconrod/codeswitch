@@ -8,6 +8,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <exception>
 
 namespace codeswitch {
 namespace internal {
@@ -47,6 +48,15 @@ inline word_t bitInsert(word_t n, word_t value, word_t width, word_t shift) {
   word_t mask = ((1UL << width) - 1UL) << shift;
   return (n & ~mask) | ((value << shift) & mask);
 }
+
+extern bool abortThrowException;
+extern bool abortBacktrace;
+
+class AbortError : public std::exception {
+ public:
+  virtual const char* what() const noexcept override { return message; }
+  char message[2048];
+};
 
 void abort(const char* fileName, int lineNumber, const char* reason, ...);
 

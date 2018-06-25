@@ -12,7 +12,13 @@
 namespace codeswitch {
 namespace internal {
 
-VM::VM() : handleStorage_(new HandleStorage()), heap_(new Heap), roots_(new Roots(heap_.get())) {}
+VM::VM() {
+  current_ = this;  // enable allocation in constructors
+  handleStorage_.reset(new HandleStorage());
+  heap_.reset(new Heap());
+  roots_.reset(new Roots(heap()));
+  current_ = nullptr;
+}
 
 VM::~VM() {
   ASSERT(current_ == nullptr);
