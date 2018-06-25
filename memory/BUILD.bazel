@@ -14,6 +14,7 @@ cc_library(
         "chunk.h",
         "handle.h",
         "heap.h",
+        "ptr.h",
         "roots.h",
     ],
     visibility = ["//:__subpackages__"],
