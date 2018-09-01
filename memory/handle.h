@@ -113,6 +113,7 @@ class LocalHandleStorage {
   LocalHandleStorage() = default;
 
   Block** create(Block* block);
+  static LocalHandleStorage* current() { return current_; }
 
  private:
   std::deque<Block*> slots_;
@@ -197,14 +198,14 @@ bool Handle<T>::isEmpty() const {
 
 template <class T>
 template <class S>
-Local<T>::Local(S* block) : Handle<T>(reinterpret_cast<T**>(LocalHandleStorage::current_->create(block))) {
+Local<T>::Local(S* block) : Handle<T>(reinterpret_cast<T**>(LocalHandleStorage::current()->create(block))) {
   CHECK_SUBTYPE_VALUE(T*, block);
 }
 
 template <class T>
 Local<T>::Local(const Local& local) {
   if (!local.isEmpty()) {
-    this->slot_ = reinterpret_cast<T**>(LocalHandleStorage::current_->create(*local.slot_));
+    this->slot_ = reinterpret_cast<T**>(LocalHandleStorage::current()->create(*local.slot_));
   }
 }
 
@@ -213,7 +214,7 @@ template <class S>
 Local<T>::Local(const Handle<S>& handle) {
   if (!handle.isEmpty()) {
     CHECK_SUBTYPE_VALUE(T*, *handle.slot_);
-    this->slot_ = reinterpret_cast<T**>(LocalHandleStorage::current_->create(*handle.slot_));
+    this->slot_ = reinterpret_cast<T**>(LocalHandleStorage::current()->create(*handle.slot_));
   }
 }
 
@@ -222,7 +223,7 @@ Local<T>& Local<T>::operator=(const Local<T>& local) {
   if (this->slot_ == nullptr && local.slot_ == nullptr) {
     // no assignment needed
   } else if (this->slot_ == nullptr) {
-    this->slot_ = reinterpret_cast<T**>(LocalHandleStorage::current_->create(*local.slot_));
+    this->slot_ = reinterpret_cast<T**>(LocalHandleStorage::current()->create(*local.slot_));
   } else if (local.slot_ == nullptr) {
     *this->slot_ = nullptr;
     this->slot_ = nullptr;
@@ -238,7 +239,7 @@ Local<T>& Local<T>::operator=(const Handle<S>& handle) {
   if (this->slot_ == nullptr && handle.slot_ == nullptr) {
     // no assignment needed
   } else if (this->slot_ == nullptr) {
-    this->slot_ = reinterpret_cast<T**>(LocalHandleStorage::current_->create(*handle.slot_));
+    this->slot_ = reinterpret_cast<T**>(LocalHandleStorage::current()->create(*handle.slot_));
   } else if (handle.slot_ == nullptr) {
     *this->slot_ = nullptr;
     this->slot_ = nullptr;

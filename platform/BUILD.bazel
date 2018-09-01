@@ -1,12 +1,17 @@
 config_setting(
     name = "linux",
-    values = {"cpu": "k8"},
-    visibility = ["//:__subpackages__"],
+    constraint_values = ["@bazel_tools//platforms:linux"],
+)
+
+config_setting(
+    name = "darwin",
+    constraint_values = ["@bazel_tools//platforms:osx"],
 )
 
 cc_library(
     name = "platform",
     srcs = select({
+        ":darwin": ["platform_posix.cpp"],
         ":linux": ["platform_posix.cpp"],
     }),
     hdrs = ["platform.h"],

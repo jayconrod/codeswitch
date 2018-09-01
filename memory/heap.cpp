@@ -70,8 +70,6 @@ void Heap::addChunk() {
   unique_ptr<Chunk> chunk(new Chunk);
   auto free = new (reinterpret_cast<void*>(chunk->data()), chunk->dataSize()) Free(nullptr);
   chunk->setFreeListHead(free);
-
-  lock_guard<mutex> lock(mut_);
   chunks_.emplace_back(move(chunk));
 }
 

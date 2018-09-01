@@ -5,6 +5,7 @@
 
 #include "platform.h"
 
+#include <cerrno>
 #include <sys/mman.h>
 
 namespace codeswitch {

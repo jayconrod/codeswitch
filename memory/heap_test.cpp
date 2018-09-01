@@ -15,8 +15,7 @@ TEST(Allocate) {
   VM vm;
   VMScope vmScope(&vm);
   auto heap = vm.heap();
-  // word_t sizes[] = {1, 7, 31, 65, 256, 555, 2001, 62000};
-  word_t sizes[] = {1};
+  word_t sizes[] = {1, 7, 31, 65, 256, 555, 2001, 62000};
   for (auto s : sizes) {
     try {
       auto addr = heap->allocate(s);
