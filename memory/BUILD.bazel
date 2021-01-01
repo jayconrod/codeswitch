@@ -4,26 +4,21 @@ cc_library(
     name = "memory",
     srcs = [
         "bitmap.cpp",
-        "block.cpp",
         "chunk.cpp",
         "handle.cpp",
         "heap.cpp",
-        "roots.cpp",
     ],
     hdrs = [
         "bitmap.h",
-        "block.h",
         "chunk.h",
         "handle.h",
         "heap.h",
         "ptr.h",
-        "roots.h",
     ],
     visibility = ["//:__subpackages__"],
     deps = [
         "//common",
         "//platform",
-        "//vm",
     ],
 )
 
@@ -37,6 +32,5 @@ cc_test(
         ":memory",
         "//common",
         "//test",
-        "//vm:vm_impl",
     ],
 )

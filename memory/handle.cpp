@@ -5,92 +5,33 @@
 
 #include "handle.h"
 
-#include "chunk.h"
-
-#include "vm/vm.h"
-
-using std::lock_guard;
-using std::mutex;
+#include <deque>
+#include <mutex>
+#include "common/common.h"
 
 namespace codeswitch {
 namespace internal {
 
-Block** LocalHandleStorage::create(Block* block) {
-  slots_.push_back(block);
-  return &slots_.back();
-}
+HandleStorage handleStorage;
 
-PersistentHandleStorage* PersistentHandleStorage::fromBlock(Block* block) {
-  return &Chunk::fromAddress(block)->vm()->handleStorage()->persistent_;
-}
-
-Block** PersistentHandleStorage::create(Block* block) {
-  lock_guard<mutex> lock(mut_);
-  if (free_ != nullptr) {
-    auto slot = &free_->block;
-    free_ = free_->next();
-    *slot = block;
+address HandleStorage::allocSlot() {
+  std::lock_guard<std::mutex> lock(mu_);
+  if (free_ != 0) {
+    auto slot = free_;
+    auto next = *reinterpret_cast<address*>(free_) & ~static_cast<address>(1);
+    free_ = next;
+    *reinterpret_cast<address*>(slot) = 0;
     return slot;
-  } else {
-    slots_.push_back({.block = block});
-    return &slots_.back().block;
   }
+  slots_.push_back(0);
+  return slots_.back();
 }
 
-void PersistentHandleStorage::release(Block** slot) {
-  lock_guard<mutex> lock(mut_);
-  auto freeSlot = reinterpret_cast<Slot*>(slot);
-  freeSlot->setNext(free_);
-  free_ = freeSlot;
+void HandleStorage::freeSlot(address slot) {
+  std::lock_guard<std::mutex> lock(mu_);
+  *reinterpret_cast<address*>(slot) = free_ | 1;
+  free_ = slot;
 }
-
-PersistentHandleStorage::Slot* PersistentHandleStorage::Slot::next() {
-  return reinterpret_cast<Slot*>(reinterpret_cast<address>(taggedNext) & ~1);
-}
-
-void PersistentHandleStorage::Slot::setNext(Slot* next) {
-  taggedNext = reinterpret_cast<Slot*>(reinterpret_cast<address>(next) | 1);
-}
-
-void HandleStorage::enter() {
-  ASSERT(LocalHandleStorage::current_ == nullptr);
-  LocalHandleStorage::current_ = new LocalHandleStorage;
-  lock_guard<mutex> lock(mut_);
-  local_.insert(LocalHandleStorage::current_);
-}
-
-void HandleStorage::leave() {
-  ASSERT(LocalHandleStorage::current_ != nullptr);
-  {
-    lock_guard<mutex> lock(mut_);
-    local_.erase(LocalHandleStorage::current_);
-  }
-  delete LocalHandleStorage::current_;
-  LocalHandleStorage::current_ = nullptr;
-}
-
-thread_local LocalHandleStorage* LocalHandleStorage::current_ = nullptr;
-
-HandleScope::HandleScope() : begin_(LocalHandleStorage::current_->slots_.end()) {
-  current_ = this;
-  LocalHandleStorage::current_->slots_.push_back(nullptr);  // escape slot
-}
-
-HandleScope::~HandleScope() {
-  auto from = begin_;
-  if (*from != nullptr) {
-    from++;
-  }
-  LocalHandleStorage::current_->slots_.erase(from, LocalHandleStorage::current_->slots_.end());
-}
-
-Block** HandleScope::escape(Block* block) {
-  ASSERT(*begin_ == nullptr);
-  *begin_ = block;
-  return &*begin_;
-}
-
-thread_local HandleScope* HandleScope::current_ = nullptr;
 
 }  // namespace internal
 }  // namespace codeswitch

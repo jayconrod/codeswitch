@@ -5,14 +5,7 @@
 
 #include "chunk.h"
 
-#include <mutex>
-
-#include "block.h"
 #include "platform/platform.h"
-#include "vm/vm.h"
-
-using std::lock_guard;
-using std::mutex;
 
 namespace codeswitch {
 namespace internal {
@@ -26,25 +19,11 @@ void Chunk::operator delete(void* addr) {
   freeChunk(addr, sizeof(Chunk));
 }
 
-Chunk::Chunk() : vm_(VM::current()) {}
-
-address Chunk::allocate(word_t size) {
-  lock_guard<mutex> lock(mut_);
-  for (Free** prev = &freeListHead_; *prev != nullptr; prev = &(*prev)->next_) {
-    auto free = *prev;
-    if (free->size_ < size) {
-      continue;
-    }
-    auto addr = reinterpret_cast<address>(free);
-    auto remaining = free->size_ - size;
-    if (remaining >= kMinFreeSize) {
-      auto newFreeAddr = addr + size;
-      auto newFree = new (reinterpret_cast<void*>(newFreeAddr), remaining) Free(free->next());
-      *prev = newFree;
-    }
-    return addr;
-  }
-  return 0;
+Chunk::Chunk(word_t blockSize) :
+  blockSize_(blockSize),
+  free_(0),
+  nextFree_(reinterpret_cast<address>(this) + kDataOffset) {
+  ASSERT(isAligned(blockSize, kBlockAlignment));
 }
 
 }  // namespace internal
