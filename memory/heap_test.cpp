@@ -6,20 +6,16 @@
 #include "test/test.h"
 
 #include "heap.h"
-#include "vm/vm.h"
 
 namespace codeswitch {
 namespace internal {
 
 TEST(Allocate) {
-  VM vm;
-  VMScope vmScope(&vm);
-  auto heap = vm.heap();
   word_t sizes[] = {1, 7, 31, 65, 256, 555, 2001, 62000};
   for (auto s : sizes) {
     try {
-      auto addr = heap->allocate(s);
-      ASSERT_TRUE(addr != 0);
+      auto addr = heap.allocate(s);
+      ASSERT_TRUE(addr != nullptr);
     } catch (AllocationError& err) {
       t.errorf("error allocating size %d", static_cast<int>(s));
     }

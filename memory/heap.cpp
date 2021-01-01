@@ -6,71 +6,56 @@
 #include "heap.h"
 
 #include <mutex>
-#include <vector>
-#include "block.h"
-
-using std::lock_guard;
-using std::max;
-using std::move;
-using std::mutex;
-using std::unique_ptr;
-using std::vector;
+#include "common/common.h"
 
 namespace codeswitch {
 namespace internal {
 
-thread_local Heap::Allocator Heap::allocator_ = {0};
+/**
+ * The global heap is shared for the entire process. This simplifies the
+ * implementation, since there's no need to carry VM or heap pointers around.
+ * Due to spectre attacks, it's probably never safe to use multiple heaps
+ * in different security contexts in the same process, so we just design around
+ * having one heap.
+ */
+Heap heap;
 
-void* Heap::allocateSlow(word_t size) {
-  lock_guard<mutex> lock(mut_);
-  freeAllocator(&allocator_);
-  while (true) {  // retry
-    if (fillAllocator(&allocator_, size)) {
-      return reinterpret_cast<void*>(allocator_.allocate(size));
-    }
-    // TODO: collect garbage.
-    addChunk();
-
-    // Retry.
+void* Heap::allocate(size_t size) {
+  // Align the requested size.
+  // OPT: limit the number of chunk sizes by increasing the alignment with
+  // block size.
+  ASSERT(size > 0);
+  auto blockSize = align(size, kBlockAlignment);
+  if (blockSize > kMaxBlockSize) {
+    // TODO: support large allocations.
+    throw AllocationError(false);
   }
-}
 
-void Heap::recordWrite(address from, address to) {}
-
-void Heap::collectGarbage() {}
-
-void Heap::enter() {}
-
-void Heap::leave() {
-  freeAllocator(&allocator_);
-}
-
-void Heap::freeAllocator(Allocator* alloc) {
-  alloc->next = 0;
-  alloc->size = 0;
-  // TODO: release memory reserved by allocator
-}
-
-bool Heap::fillAllocator(Allocator* alloc, word_t size) {
-  if (size < kDefaultAllocatorSize) {
-    size = kDefaultAllocatorSize;
-  }
-  for (auto& chunk : chunks_) {
-    auto addr = chunk->allocate(size);
-    if (addr != 0) {
-      allocator_.next = addr;
-      allocator_.size = size;
-      return true;
+  // Try to allocate from each chunk of the correct size.
+  // OPT: track which chunks have free space.
+  std::lock_guard<std::mutex> lock(mu_);
+  auto& chunks_ = chunksBySize_[blockSize];
+  for (auto& c : chunks_) {
+    auto block = c->allocate();
+    if (block != 0) {
+      return reinterpret_cast<void*>(block);
     }
   }
-  return false;
+
+  // TODO: collect garbage when we reach some allocation threshold.
+
+  // Create a new chunk, add it to the list, then allocate from that.
+  chunks_.emplace_back(new Chunk(blockSize));
+  auto block = chunks_.back()->allocate();
+  return reinterpret_cast<void*>(block);
 }
 
-void Heap::addChunk() {
-  unique_ptr<Chunk> chunk(new Chunk);
-  auto free = new (reinterpret_cast<void*>(chunk->data()), chunk->dataSize()) Free(nullptr);
-  chunk->setFreeListHead(free);
-  chunks_.emplace_back(move(chunk));
+void Heap::recordWrite(address from, address to) {
+  // TODO: implement.
+}
+
+void Heap::collectGarbage() {
+  // TODO: implement.
 }
 
 }  // namespace internal
