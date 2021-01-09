@@ -1,0 +1,13 @@
+on: [push]
+
+jobs:
+  test:
+    runs-on: "ubuntu-20.04"
+    name: "Run Bazel tests"
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@v2.3.4
+      - name: "Download Bazel"
+        run: "curl -L -o bazel https://github.com/bazelbuild/bazel/releases/download/3.7.2/bazel-3.7.2-linux-x86_64 && chmod +x bazel"
+      - name: "Run tests"
+        run: "./bazel test //..."
