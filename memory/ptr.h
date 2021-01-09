@@ -22,7 +22,10 @@ class alignas(word_t) Ptr {
   explicit Ptr(T* q) { set(q); }
   NON_COPYABLE(Ptr)
 
-  T* get() const { return p_; }
+  const T* get() const { return p_; }
+  T* get() { return p_; }
+  const T* operator->() const { return p_; }
+  T* operator->() { return p_; }
   void set(T* q) {
     p_ = q;
     Heap::recordWrite(&p_, q);

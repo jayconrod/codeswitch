@@ -20,7 +20,10 @@ namespace internal {
  * We will never allocate blocks below this address. Lesser values can signal
  * failures or encoded values.
  */
-const word_t kMinAddress = 1 << 20;
+const address kMinAddress = 1 << 20;
+
+/** Address returned when a 0-byte allocation is requested. */
+const address kZeroAllocAddress = kMinAddress;
 
 /**
  * Thrown when memory can't be allocated from the heap. Has a flag that
@@ -33,6 +36,15 @@ class AllocationError : public std::exception {
   virtual const char* what() const noexcept override { return "allocation error"; }
 
   bool shouldRetryAfterGC;
+};
+
+/**
+ * Thrown when an address is accessed outside of the block it was expected to
+ * be in. For example, this can happen when a value is read or written off the
+ * end of an array.
+ */
+class BoundsCheckError : public std::exception {
+  virtual const char* what() const noexcept override { return "bounds check error"; }
 };
 
 class Heap {
@@ -61,6 +73,10 @@ class Heap {
   template <class T>
   static void recordWrite(T** from, T* to);
 
+  static void checkBound(address base, word_t offset);
+  static address blockContaining(address p);
+  static word_t blockSize(address p);
+
   /** Reclaim memory used by blocks that are no longer reachable. */
   void collectGarbage();
 
@@ -72,6 +88,11 @@ class Heap {
 };
 
 extern Heap heap;
+
+template <class T>
+void Heap::recordWrite(T** from, T* to) {
+  recordWrite(reinterpret_cast<address>(from), reinterpret_cast<address>(to));
+}
 
 }  // namespace internal
 }  // namespace codeswitch

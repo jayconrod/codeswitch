@@ -58,8 +58,9 @@ class HandleStorage {
 extern HandleStorage handleStorage;
 
 template <class T>
-Handle<T>::Handle(T* block) {
-  *this = block;
+Handle<T>::Handle(T* block) :
+  slot_(reinterpret_cast<T**>(handleStorage.allocSlot())) {
+  *slot_ = block;
 }
 
 template <class T>

@@ -3,6 +3,7 @@
 # Run with: bazel test --config=ci
 
 build --cxxopt='-std=c++17'
+build --cxxopt='-Werror'
 
 build:check --all_incompatible_changes
 
