@@ -24,7 +24,9 @@ void* Heap::allocate(size_t size) {
   // Align the requested size.
   // OPT: limit the number of chunk sizes by increasing the alignment with
   // block size.
-  ASSERT(size > 0);
+  if (size == 0) {
+    return reinterpret_cast<void*>(kZeroAllocAddress);
+  }
   auto blockSize = align(size, kBlockAlignment);
   if (blockSize > kMaxBlockSize) {
     // TODO: support large allocations.
@@ -52,6 +54,28 @@ void* Heap::allocate(size_t size) {
 
 void Heap::recordWrite(address from, address to) {
   // TODO: implement.
+}
+
+void Heap::checkBound(address base, word_t offset) {
+  auto block = blockContaining(base);
+  auto size = blockSize(block);
+  if (size <= offset) {
+    throw BoundsCheckError();
+  }
+}
+
+address Heap::blockContaining(address p) {
+  if (p == kZeroAllocAddress) {
+    return kZeroAllocAddress;
+  }
+  return Chunk::fromAddress(p)->blockContaining(p);
+}
+
+word_t Heap::blockSize(address p) {
+  if (p == kZeroAllocAddress) {
+    return 0;
+  }
+  return Chunk::fromAddress(p)->blockSize();
 }
 
 void Heap::collectGarbage() {

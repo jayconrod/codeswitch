@@ -40,33 +40,33 @@ class Test {
   bool passed_ = true;
 };
 
-#define ASSERT_TRUE(exp)            \
-  do {                              \
-    if (!(exp)) {                   \
-      std::stringstream ss;         \
-      ss << #exp << " is not true"; \
-      t.fatal(ss.str());            \
-    }                               \
+#define ASSERT_TRUE(exp)                                                   \
+  do {                                                                     \
+    if (!(exp)) {                                                          \
+      std::stringstream ss;                                                \
+      ss << __FILE__ << ":" << __LINE__ << ": " << #exp << " is not true"; \
+      t.fatal(ss.str());                                                   \
+    }                                                                      \
   } while (false)
 
-#define ASSERT_FALSE(exp)            \
-  do {                               \
-    if (exp) {                       \
-      std::stringstream ss;          \
-      ss << #exp << " is not false"; \
-      t.fatal(ss.str());             \
-    }                                \
+#define ASSERT_FALSE(exp)                                                   \
+  do {                                                                      \
+    if (exp) {                                                              \
+      std::stringstream ss;                                                 \
+      ss << __FILE__ << ":" << __LINE__ << ": " << #exp << " is not false"; \
+      t.fatal(ss.str());                                                    \
+    }                                                                       \
   } while (false)
 
-#define ASSERT_EQ(lexp, rexp) \
-  do {                        \
-    auto l = (lexp);          \
-    auto r = (rexp);          \
-    if (l != r) {             \
-      std::stringstream ss;   \
-      ss << l << " != " << r; \
-      t.fatal(ss.str());      \
-    }                         \
+#define ASSERT_EQ(lexp, rexp)                                        \
+  do {                                                               \
+    auto l = (lexp);                                                 \
+    auto r = (rexp);                                                 \
+    if (l != r) {                                                    \
+      std::stringstream ss;                                          \
+      ss << __FILE__ << ":" << __LINE__ << ": " << l << " != " << r; \
+      t.fatal(ss.str());                                             \
+    }                                                                \
   } while (false)
 
 class TestCase {

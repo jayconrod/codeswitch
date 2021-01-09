@@ -1,0 +1,33 @@
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
+
+cc_library(
+    name = "data",
+    srcs = [
+        "list.cpp",
+        "string.cpp",
+    ],
+    hdrs = [
+        "array.h",
+        "list.h",
+        "string.h",
+    ],
+    visibility = ["//:__subpackages__"],
+    deps = [
+        "//common",
+        "//memory",
+    ],
+)
+
+cc_test(
+    name = "data_test",
+    srcs = [
+        "array_test.cpp",
+        "list_test.cpp",
+        "string_test.cpp",
+    ],
+    deps = [
+        ":data",
+        "//common",
+        "//test",
+    ],
+)

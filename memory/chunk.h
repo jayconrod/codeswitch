@@ -59,6 +59,8 @@ class Chunk {
   static Chunk* fromAddress(address addr);
 
   word_t blockSize() const { return blockSize_; }
+  address blockContaining(address p);
+
   address allocate();
 
  private:
@@ -85,10 +87,7 @@ class Chunk {
    */
   address nextFree_;
 
-  static const word_t kHeaderSize = sizeof(mu_) +
-    sizeof(blockSize_) +
-    sizeof(free_) +
-    sizeof(nextFree_);
+  static const word_t kHeaderSize = sizeof(mu_) + sizeof(blockSize_) + sizeof(free_) + sizeof(nextFree_);
 
   uint8_t pad_[kSize - kHeaderSize];
 
@@ -116,7 +115,13 @@ inline Chunk* Chunk::fromAddress(const void* p) {
 }
 
 inline Chunk* Chunk::fromAddress(address addr) {
-  return reinterpret_cast<Chunk*>(addr & (kSize - 1));
+  return reinterpret_cast<Chunk*>(addr & ~(kSize - 1));
+}
+
+inline address Chunk::blockContaining(address p) {
+  auto base = reinterpret_cast<address>(this) + kDataOffset;
+  auto offset = p - base;
+  return base + (offset / blockSize_ * blockSize_);
 }
 
 /** Attempts to allocate a free block. Returns 0 if no blocks are free. */
