@@ -24,7 +24,7 @@ address HandleStorage::allocSlot() {
     return slot;
   }
   slots_.push_back(0);
-  return slots_.back();
+  return reinterpret_cast<address>(&slots_.back());
 }
 
 void HandleStorage::freeSlot(address slot) {

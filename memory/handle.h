@@ -9,6 +9,7 @@
 #include <deque>
 #include <mutex>
 #include "common/common.h"
+#include "ptr.h"
 
 namespace codeswitch {
 namespace internal {
@@ -25,17 +26,27 @@ class Handle {
   Handle(const Handle& handle);
   Handle(Handle&& handle);
   ~Handle();
-  Handle& operator = (const Handle& handle);
-  Handle& operator = (Handle&& handle);
+  Handle& operator=(const Handle& handle);
+  Handle& operator=(Handle&& handle);
 
-  T* operator*() const;
-  T* operator->() const;
-  T* getOrNull() const;
-  bool isEmpty() const;
+  operator bool() const { return slot_; }
+  const T* get() const { return slot_->get(); }
+  T* get() { return slot_->get(); }
+  const T* getOrNull() const { return slot_ ? slot_->get() : nullptr; }
+  T* getOrNull() { return slot_ ? slot_->get() : nullptr; }
+  const T* operator->() const { return get(); }
+  T* operator->() { return get(); }
+  const Ptr<T>& operator*() const { return *slot_; }
+  Ptr<T>& operator*() { return *slot_; }
 
  private:
-  T** slot_ = nullptr;
+  Ptr<T>* slot_;
 };
+
+template <class T>
+Handle<T> handle(T* block) {
+  return Handle<T>(block);
+}
 
 /**
  * HandleStorage tracks all live handles.
@@ -48,7 +59,7 @@ class HandleStorage {
  public:
   address allocSlot();
   void freeSlot(address slot);
-  
+
  private:
   std::mutex mu_;
   std::deque<address> slots_;
@@ -58,16 +69,15 @@ class HandleStorage {
 extern HandleStorage handleStorage;
 
 template <class T>
-Handle<T>::Handle(T* block) :
-  slot_(reinterpret_cast<T**>(handleStorage.allocSlot())) {
-  *slot_ = block;
+Handle<T>::Handle(T* block) : slot_(reinterpret_cast<Ptr<T>*>(handleStorage.allocSlot())) {
+  slot_->set(block);
 }
 
 template <class T>
 Handle<T>::Handle(const Handle<T>& handle) {
   if (handle.slot_ != nullptr) {
-    slot_ = reinterpret_cast<T**>(handleStorage.allocSlot());
-    *slot_ = *handle.slot_;
+    slot_ = reinterpret_cast<Ptr<T>*>(handleStorage.allocSlot());
+    slot_->set(handle->slot_->get())* slot_ = *handle.slot_;
   }
 }
 
@@ -84,7 +94,7 @@ Handle<T>::~Handle() {
 }
 
 template <class T>
-Handle<T>& Handle<T>::operator = (const Handle<T>& handle) {
+Handle<T>& Handle<T>::operator=(const Handle<T>& handle) {
   if (handle.slot_ == nullptr) {
     if (slot_ != nullptr) {
       handleStorage.freeSlot(reinterpret_cast<address>(slot_));
@@ -100,36 +110,13 @@ Handle<T>& Handle<T>::operator = (const Handle<T>& handle) {
 }
 
 template <class T>
-Handle<T>& Handle<T>::operator = (Handle<T>&& handle) {
+Handle<T>& Handle<T>::operator=(Handle<T>&& handle) {
   if (slot_ != nullptr) {
     handleStorage.freeSlot(reinterpret_cast<address>(slot_));
   }
   slot_ = handle.slot_;
   handle.slot_ = nullptr;
   return *this;
-}
-
-template <class T>
-T* Handle<T>::operator * () const {
-  return *slot_;
-}
-
-template <class T>
-T* Handle<T>::operator -> () const {
-  return *slot_;
-}
-
-template <class T>
-T* Handle<T>::getOrNull() const {
-  if (slot_ == nullptr) {
-    return nullptr;
-  }
-  return *slot_;
-}
-
-template <class T>
-bool Handle<T>::isEmpty() const {
-  return slot_ == nullptr;
 }
 
 }  // namespace internal

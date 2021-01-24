@@ -6,7 +6,9 @@
 #ifndef ptr_h
 #define ptr_h
 
+#include <functional>
 #include "common/common.h"
+#include "heap.h"
 
 namespace codeswitch {
 namespace internal {
@@ -20,10 +22,25 @@ class alignas(word_t) Ptr {
  public:
   Ptr() : p_(nullptr) {}
   explicit Ptr(T* q) { set(q); }
-  NON_COPYABLE(Ptr)
+  Ptr(const Ptr& q) { set(q.p_); }
+  Ptr(Ptr&& q) {
+    set(q.p_);
+    q.set(nullptr);
+  }
+  Ptr& operator=(const Ptr& q) {
+    set(q.p_);
+    return *this;
+  }
+  Ptr& operator=(Ptr&& q) {
+    set(q.p_);
+    q.set(nullptr);
+    return *this;
+  }
 
   const T* get() const { return p_; }
   T* get() { return p_; }
+  const T& operator*() const { return *p_; }
+  T& operator*() { return *p_; }
   const T* operator->() const { return p_; }
   T* operator->() { return p_; }
   void set(T* q) {
@@ -46,6 +63,13 @@ class alignas(word_t) Ptr {
 
  private:
   T* p_;
+};
+
+template <class T>
+class PtrHash {
+ public:
+  static word_t hash(const Ptr<T>& p) { return std::hash(reinterpret_cast<uintptr_t>(p.get())); }
+  static bool equal(const Ptr<T>& l, const Ptr<T>& r) { return l == r; }
 };
 
 }  // namespace internal
