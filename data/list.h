@@ -81,7 +81,7 @@ List<T>& List<T>::operator=(List<T>&& list) {
 template <class T>
 List<T>* List<T>::make(length_t cap) {
   auto list = new (heap.allocate(sizeof(List<T>))) List<T>();
-  list->data_.set(Array<T>::alloc(cap));
+  list->data_.set(Array<T>::make(cap));
   list->cap_ = cap;
   return list;
 }
@@ -109,7 +109,7 @@ void List<T>::append(const T& elem) {
     if (newCap < 8) {
       newCap = 8;
     }
-    auto newData = Array<T>::alloc(newCap);
+    auto newData = Array<T>::make(newCap);
     for (length_t i = 0; i < length_; i++) {
       newData->at(i) = data_->at(i);
     }

@@ -6,6 +6,7 @@
 #ifndef string_h
 #define string_h
 
+#include <string_view>
 #include "array.h"
 #include "common/common.h"
 #include "memory/handle.h"
@@ -29,6 +30,7 @@ class String {
 
   length_t length() const { return length_; }
   String slice(length_t i, length_t j) const;
+  std::string_view view() const;
 
   intptr_t compare(const String& r) const;
   intptr_t compare(const String* r) const { return compare(*r); }
@@ -39,6 +41,12 @@ class String {
 
   length_t length_;
   Ptr<const Array<uint8_t>> data_;
+};
+
+class HashString {
+ public:
+  static word_t hash(const Ptr<String>& s);
+  static bool equal(const Ptr<String>& l, const Ptr<String>& r) { return l->compare(*r) == 0; }
 };
 
 }  // namespace internal
