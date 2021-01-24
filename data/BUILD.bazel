@@ -9,6 +9,7 @@ cc_library(
     hdrs = [
         "array.h",
         "list.h",
+        "map.h",
         "string.h",
     ],
     visibility = ["//:__subpackages__"],
@@ -23,6 +24,7 @@ cc_test(
     srcs = [
         "array_test.cpp",
         "list_test.cpp",
+        "map_test.cpp",
         "string_test.cpp",
     ],
     deps = [

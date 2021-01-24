@@ -7,6 +7,8 @@
 
 #include <algorithm>
 #include <cstring>
+#include <functional>
+#include <string_view>
 #include "array.h"
 #include "memory/handle.h"
 #include "memory/heap.h"
@@ -22,13 +24,13 @@ String::String(length_t length, const Array<uint8_t>* data) : length_(length), d
 
 String* String::make(const char* s) {
   length_t length = strlen(s);
-  auto data = Array<uint8_t>::alloc(length);
+  auto data = Array<uint8_t>::make(length);
   std::copy_n(s, length, reinterpret_cast<uint8_t*>(data));
   return new String(length, data);
 }
 
 String* String::make(const std::string& s) {
-  auto data = Array<uint8_t>::alloc(s.size());
+  auto data = Array<uint8_t>::make(s.size());
   std::copy(s.begin(), s.end(), reinterpret_cast<uint8_t*>(data));
   return new String(s.size(), data);
 }
@@ -50,6 +52,10 @@ String String::slice(length_t i, length_t j) const {
     throw BoundsCheckError();
   }
   return String(j - i, data_.get()->slice(i));
+}
+
+std::string_view String::view() const {
+  return std::string_view(reinterpret_cast<const char*>(&data_->at(0)), length_);
 }
 
 intptr_t String::compare(const String& r) const {
@@ -84,6 +90,10 @@ intptr_t String::compare(const char* s) const {
   } else {
     return 0;
   }
+}
+
+word_t HashString::hash(const Ptr<String>& s) {
+  return std::hash<std::string_view>{}(s->view());
 }
 
 }  // namespace internal

@@ -12,7 +12,7 @@ namespace internal {
 
 TEST(ArrayBasic) {
   for (length_t i = 0; i < 2; i++) {
-    auto a = Array<int>::alloc(i);
+    auto a = Array<int>::make(i);
     for (length_t j = 0; j < i; j++) {
       (*a)[j] = j + 1;
     }
@@ -25,7 +25,7 @@ TEST(ArrayBasic) {
 }
 
 TEST(ArraySlice) {
-  auto a = Array<int>::alloc(2);
+  auto a = Array<int>::make(2);
   auto b = a->slice(0);
   ASSERT_EQ(a, b);
   auto c = a->slice(1);

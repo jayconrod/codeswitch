@@ -18,7 +18,7 @@ namespace internal {
 template <class T>
 class Array {
  public:
-  static Array* alloc(length_t length);
+  static Array* make(length_t length);
   Array() {}
   NON_COPYABLE(Array)
 
@@ -34,7 +34,7 @@ class Array {
 };
 
 template <class T>
-Array<T>* Array<T>::alloc(length_t length) {
+Array<T>* Array<T>::make(length_t length) {
   return new (heap.allocate(length * sizeof(T))) Array<T>;
 }
 
