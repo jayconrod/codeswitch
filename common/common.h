@@ -49,6 +49,25 @@ inline word_t bitInsert(word_t n, word_t value, word_t width, word_t shift) {
   return (n & ~mask) | ((value << shift) & mask);
 }
 
+constexpr inline bool isPowerOf2(word_t n) {
+  return n != 0 && (n & (n - 1)) == 0;
+}
+
+constexpr inline word_t nextPowerOf2(word_t n) {
+  n += (n == 0);
+  n--;
+  n |= n >> 1;
+  n |= n >> 2;
+  n |= n >> 4;
+  n |= n >> 8;
+  n |= n >> 16;
+  if (sizeof(n) == 8) {
+    n |= n >> 32;
+  }
+  n++;
+  return n;
+}
+
 extern bool abortThrowException;
 extern bool abortBacktrace;
 
