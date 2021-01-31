@@ -3,8 +3,8 @@
 // This file is part of CodeSwitch. Use of this source code is governed by
 // the 3-clause BSD license that can be found in the LICENSE.txt file.
 
-#ifndef chunk_h
-#define chunk_h
+#ifndef memory_chunk_h
+#define memory_chunk_h
 
 #include <cstddef>
 #include <iterator>

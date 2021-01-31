@@ -3,8 +3,8 @@
 // This file is part of CodeSwitch. Use of this source code is governed by
 // the 3-clause BSD license that can be found in the LICENSE.txt file.
 
-#ifndef test_h
-#define test_h
+#ifndef test_test_h
+#define test_test_h
 
 #include <sstream>
 #include <string>

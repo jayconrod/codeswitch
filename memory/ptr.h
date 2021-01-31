@@ -3,8 +3,8 @@
 // This file is part of CodeSwitch. Use of this source code is governed by
 // the 3-clause BSD license that can be found in the LICENSE.txt file.
 
-#ifndef ptr_h
-#define ptr_h
+#ifndef memory_ptr_h
+#define memory_ptr_h
 
 #include <functional>
 #include "common/common.h"
