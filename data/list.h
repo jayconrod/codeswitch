@@ -3,8 +3,8 @@
 // This file is part of CodeSwitch. Use of this source code is governed by
 // the 3-clause BSD license that can be found in the LICENSE.txt file.
 
-#ifndef list_h
-#define list_h
+#ifndef data_list_h
+#define data_list_h
 
 #include "array.h"
 #include "common/common.h"

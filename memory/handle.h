@@ -3,8 +3,8 @@
 // This file is part of CodeSwitch. Use of this source code is governed by
 // the 3-clause BSD license that can be found in the LICENSE.txt file.
 
-#ifndef handle_h
-#define handle_h
+#ifndef memory_handle_h
+#define memory_handle_h
 
 #include <deque>
 #include <mutex>
