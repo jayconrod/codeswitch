@@ -8,7 +8,6 @@
 #include "list.h"
 
 namespace codeswitch {
-namespace internal {
 
 TEST(ListBasic) {
   auto list = List<int>::make(3);
@@ -39,5 +38,4 @@ TEST(ListBasic) {
   }
 }
 
-}  // namespace internal
 }  // namespace codeswitch

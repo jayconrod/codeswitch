@@ -5,11 +5,10 @@
 
 #include "platform.h"
 
-#include <cerrno>
 #include <sys/mman.h>
+#include <cerrno>
 
 namespace codeswitch {
-namespace internal {
 
 void* allocateChunk(size_t size, size_t alignment) {
   // TODO: randomize the allocation address.
@@ -35,5 +34,5 @@ void* allocateChunk(size_t size, size_t alignment) {
 void freeChunk(void* addr, size_t size) {
   munmap(addr, size);
 }
-}
-}
+
+}  // namespace codeswitch

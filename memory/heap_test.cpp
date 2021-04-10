@@ -8,7 +8,6 @@
 #include "heap.h"
 
 namespace codeswitch {
-namespace internal {
 
 TEST(Allocate) {
   word_t sizes[] = {1, 7, 31, 65, 256, 555, 2001, 62000};
@@ -22,5 +21,4 @@ TEST(Allocate) {
   }
 }
 
-}  // namespace internal
 }  // namespace codeswitch

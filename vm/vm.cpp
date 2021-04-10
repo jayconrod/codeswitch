@@ -6,7 +6,5 @@
 #include "vm.h"
 
 namespace codeswitch {
-namespace internal {
 
-}  // namespace internal
 }  // namespace codeswitch

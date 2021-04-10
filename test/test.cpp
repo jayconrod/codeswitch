@@ -19,12 +19,11 @@ using std::exception;
 using std::vector;
 
 int main() {
-  codeswitch::internal::TestRunner runner;
+  codeswitch::TestRunner runner;
   return runner.Run() ? 0 : 1;
 }
 
 namespace codeswitch {
-namespace internal {
 
 vector<TestCase> testCases;
 
@@ -96,5 +95,4 @@ TestCase::TestCase(const char* name, void (*fn)(Test& t)) : name(name), fn(fn) {
   testCases.push_back(*this);
 }
 
-}  // namespace internal
 }  // namespace codeswitch

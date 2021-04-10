@@ -8,7 +8,6 @@
 #include "common.h"
 
 namespace codeswitch {
-namespace internal {
 
 TEST(Alignment) {
   ASSERT_EQ(0u, align(0, 4));
@@ -45,5 +44,4 @@ TEST(NextPowerOf2) {
   ASSERT_EQ(nextPowerOf2(5), static_cast<word_t>(8));
 }
 
-}  // namespace internal
 }  // namespace codeswitch

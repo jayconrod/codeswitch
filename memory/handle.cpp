@@ -10,7 +10,6 @@
 #include "common/common.h"
 
 namespace codeswitch {
-namespace internal {
 
 HandleStorage handleStorage;
 
@@ -33,5 +32,4 @@ void HandleStorage::freeSlot(address slot) {
   free_ = slot;
 }
 
-}  // namespace internal
 }  // namespace codeswitch

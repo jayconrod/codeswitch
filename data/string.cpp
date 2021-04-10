@@ -14,7 +14,6 @@
 #include "memory/heap.h"
 
 namespace codeswitch {
-namespace internal {
 
 void* String::operator new(size_t size) {
   return heap.allocate(size);
@@ -96,5 +95,4 @@ word_t HashString::hash(const Ptr<String>& s) {
   return std::hash<std::string_view>{}(s->view());
 }
 
-}  // namespace internal
 }  // namespace codeswitch

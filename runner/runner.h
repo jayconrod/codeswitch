@@ -14,7 +14,6 @@
 #include "common/common.h"
 
 namespace codeswitch {
-namespace internal {
 
 /**
  * Runner executes tasks asynchronously on a set of background threads.
@@ -32,7 +31,6 @@ class Runner {
 
 extern Runner runner;
 
-}  // namespace internal
 }  // namespace codeswitch
 
 #endif

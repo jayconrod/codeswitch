@@ -11,7 +11,6 @@
 #include <exception>
 
 namespace codeswitch {
-namespace internal {
 
 typedef uintptr_t word_t;
 typedef uintptr_t address;
@@ -106,7 +105,6 @@ void abort(const char* fileName, int lineNumber, const char* reason, ...);
 
 const word_t kGarbageHandle = 0xDEADBEEFul;
 
-}  // namespace internal
 }  // namespace codeswitch
 
 #endif

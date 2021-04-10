@@ -14,7 +14,6 @@
 using namespace std;
 
 namespace codeswitch {
-namespace internal {
 
 bool abortThrowException = false;
 bool abortBacktrace = false;
@@ -43,5 +42,4 @@ void abort(const char* fileName, int lineNumber, const char* reason, ...) {
     ::abort();
   }
 }
-}  // namespace internal
 }  // namespace codeswitch

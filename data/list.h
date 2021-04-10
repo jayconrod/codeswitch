@@ -11,7 +11,6 @@
 #include "memory/ptr.h"
 
 namespace codeswitch {
-namespace internal {
 
 /**
  * A variable length, contiguous sequence of elements of the same type.
@@ -120,7 +119,6 @@ void List<T>::append(const T& elem) {
   length_++;
 }
 
-}  // namespace internal
 }  // namespace codeswitch
 
 #endif

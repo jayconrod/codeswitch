@@ -9,7 +9,6 @@
 #include "common/common.h"
 
 namespace codeswitch {
-namespace internal {
 
 /**
  * The global heap is shared for the entire process. This simplifies the
@@ -82,5 +81,4 @@ void Heap::collectGarbage() {
   // TODO: implement.
 }
 
-}  // namespace internal
 }  // namespace codeswitch
