@@ -10,7 +10,6 @@
 #include "memory/heap.h"
 
 namespace codeswitch {
-namespace internal {
 
 class Type {
  public:
@@ -32,7 +31,6 @@ class Type {
   Kind kind_;
 };
 
-}  // namespace internal
 }  // namespace codeswitch
 
 #endif

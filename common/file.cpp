@@ -11,7 +11,6 @@
 #include <vector>
 
 namespace codeswitch {
-namespace internal {
 
 std::vector<uint8_t> readFile(const std::string& filename) {
   std::ifstream f;
@@ -24,5 +23,4 @@ std::vector<uint8_t> readFile(const std::string& filename) {
   return data;
 }
 
-}  // namespace internal
 }  // namespace codeswitch

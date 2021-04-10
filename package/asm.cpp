@@ -19,7 +19,6 @@
 #include "type.h"
 
 namespace codeswitch {
-namespace internal {
 
 enum class TokenKind {
   LPAREN,
@@ -398,5 +397,4 @@ Token PackageAsmParser::expectIdent(const std::string& want) {
   return t;
 }
 
-}  // namespace internal
 }  // namespace codeswitch

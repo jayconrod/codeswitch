@@ -12,7 +12,6 @@
 #include "package/function.h"
 
 namespace codeswitch {
-namespace internal {
 
 static length_t typesSize(const List<Ptr<Type>>& types);
 
@@ -56,5 +55,4 @@ void interpret(Handle<Function> f) {
   }
 }
 
-}  // namespace internal
 }  // namespace codeswitch

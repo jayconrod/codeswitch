@@ -12,7 +12,6 @@
 #include "memory/ptr.h"
 
 namespace codeswitch {
-namespace internal {
 
 class Package {
  public:
@@ -25,7 +24,6 @@ class Package {
   Ptr<Array<Ptr<Function>>> functions_;
 };
 
-}  // namespace internal
 }  // namespace codeswitch
 
 #endif

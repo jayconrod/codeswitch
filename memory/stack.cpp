@@ -6,7 +6,6 @@
 #include "stack.h"
 
 namespace codeswitch {
-namespace internal {
 
 // TODO: dynamic stack size.
 const length_t kStackSize = 4096;
@@ -22,5 +21,4 @@ Stack::~Stack() {
   delete[] reinterpret_cast<uint8_t*>(limit_);
 }
 
-}  // namespace internal
 }  // namespace codeswitch

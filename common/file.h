@@ -11,11 +11,9 @@
 #include <vector>
 
 namespace codeswitch {
-namespace internal {
 
 std::vector<uint8_t> readFile(const std::string& filename);
 
-}  // namespace internal
 }  // namespace codeswitch
 
 #endif

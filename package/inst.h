@@ -10,7 +10,6 @@
 #include "common/common.h"
 
 namespace codeswitch {
-namespace internal {
 
 enum class Op : uint8_t {
   RET,
@@ -42,7 +41,6 @@ const Inst* Inst::next() const {
   return this + size();
 }
 
-}  // namespace internal
 }  // namespace codeswitch
 
 #endif

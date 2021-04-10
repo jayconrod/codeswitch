@@ -7,7 +7,6 @@
 #define interpreter_interpreter_h
 
 namespace codeswitch {
-namespace internal {
 
 template <class T>
 class Handle;
@@ -15,7 +14,6 @@ class Function;
 
 void interpret(Handle<Function> f);
 
-}  // namespace internal
 }  // namespace codeswitch
 
 #endif

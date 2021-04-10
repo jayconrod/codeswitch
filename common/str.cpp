@@ -10,7 +10,6 @@
 #include <string>
 
 namespace codeswitch {
-namespace internal {
 
 std::string strprintf(const char* fmt, ...) {
   std::string s;
@@ -24,5 +23,4 @@ std::string strprintf(const char* fmt, ...) {
   return s;
 }
 
-}  // namespace internal
 }  // namespace codeswitch

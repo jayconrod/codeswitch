@@ -14,7 +14,6 @@
 #include "type.h"
 
 namespace codeswitch {
-namespace internal {
 
 class Function {
  public:
@@ -36,7 +35,6 @@ class Function {
   length_t frameSize_;
 };
 
-}  // namespace internal
 }  // namespace codeswitch
 
 #endif

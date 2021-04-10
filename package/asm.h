@@ -14,7 +14,6 @@
 #include "package.h"
 
 namespace codeswitch {
-namespace internal {
 
 Handle<Package> readPackageAsm(const std::string& filename);
 
@@ -32,7 +31,6 @@ class Assembler {
   std::vector<Inst> insts_;
 };
 
-}  // namespace internal
 }  // namespace codeswitch
 
 #endif

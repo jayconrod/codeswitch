@@ -8,7 +8,6 @@
 #include "common/common.h"
 
 namespace codeswitch {
-namespace internal {
 
 word_t Type::size() const {
   switch (kind_) {
@@ -23,5 +22,4 @@ word_t Type::size() const {
   return ~0;
 }
 
-}  // namespace internal
 }  // namespace codeswitch

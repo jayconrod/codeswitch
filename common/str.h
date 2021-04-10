@@ -9,11 +9,9 @@
 #include <string>
 
 namespace codeswitch {
-namespace internal {
 
 std::string strprintf(const char* fmt, ...);
 
-}  // namespace internal
 }  // namespace codeswitch
 
 #endif

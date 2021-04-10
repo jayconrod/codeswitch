@@ -9,7 +9,6 @@
 #include "common/common.h"
 
 namespace codeswitch {
-namespace internal {
 
 class Stack {
  public:
@@ -39,7 +38,6 @@ void Stack::check(length_t n) {
   }
 }
 
-}  // namespace internal
 }  // namespace codeswitch
 
 #endif
