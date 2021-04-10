@@ -9,7 +9,6 @@
 #include <thread>
 
 namespace codeswitch {
-namespace internal {
 
 void Runner::run(std::function<void()>&& task) {
   // TODO: implement M:N threading.
@@ -23,5 +22,4 @@ void Runner::run(std::function<void()>&& task) {
   new std::thread(task);
 }
 
-}  // namespace internal
 }  // namespace codeswitch

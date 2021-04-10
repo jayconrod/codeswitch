@@ -8,7 +8,6 @@
 #include "platform/platform.h"
 
 namespace codeswitch {
-namespace internal {
 
 void* Chunk::operator new(size_t size) {
   ASSERT(size == sizeof(Chunk));
@@ -26,5 +25,4 @@ Chunk::Chunk(word_t blockSize) :
   ASSERT(isAligned(blockSize, kBlockAlignment));
 }
 
-}  // namespace internal
 }  // namespace codeswitch

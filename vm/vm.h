@@ -9,14 +9,12 @@
 #include "common/common.h"
 
 namespace codeswitch {
-namespace internal {
 
 class VM {
  public:
   NON_COPYABLE(VM)
 };
 
-}  // namespace internal
 }  // namespace codeswitch
 
 #endif

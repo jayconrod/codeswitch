@@ -11,7 +11,6 @@
 #include "heap.h"
 
 namespace codeswitch {
-namespace internal {
 
 /**
  * Wrapper for pointers stored within Blocks. Ensures that pointer fields are
@@ -72,7 +71,6 @@ class PtrHash {
   static bool equal(const Ptr<T>& l, const Ptr<T>& r) { return l == r; }
 };
 
-}  // namespace internal
 }  // namespace codeswitch
 
 #endif

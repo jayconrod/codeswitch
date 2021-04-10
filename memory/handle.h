@@ -12,7 +12,6 @@
 #include "ptr.h"
 
 namespace codeswitch {
-namespace internal {
 
 /**
  * Handle tracks a reference to a block on the heap from outside the heap,
@@ -119,7 +118,6 @@ Handle<T>& Handle<T>::operator=(Handle<T>&& handle) {
   return *this;
 }
 
-}  // namespace internal
 }  // namespace codeswitch
 
 #endif

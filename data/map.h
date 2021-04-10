@@ -11,7 +11,6 @@
 #include "memory/ptr.h"
 
 namespace codeswitch {
-namespace internal {
 
 template <class K, class V, class H>
 class Map {
@@ -144,7 +143,6 @@ word_t Map<K, V, H>::hash(const K& key) {
   return h;
 }
 
-}  // namespace internal
 }  // namespace codeswitch
 
 #endif

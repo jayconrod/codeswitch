@@ -8,7 +8,6 @@
 #include "array.h"
 
 namespace codeswitch {
-namespace internal {
 
 TEST(ArrayBasic) {
   for (length_t i = 0; i < 2; i++) {
@@ -35,5 +34,4 @@ TEST(ArraySlice) {
   ASSERT_EQ(reinterpret_cast<int*>(d), reinterpret_cast<int*>(a) + 2);
 }
 
-}  // namespace internal
 }  // namespace codeswitch

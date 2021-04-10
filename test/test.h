@@ -11,7 +11,6 @@
 #include <vector>
 
 namespace codeswitch {
-namespace internal {
 
 class Test;
 class TestCase;
@@ -84,7 +83,6 @@ class TestCase {
 
 extern std::vector<TestCase> testCases;
 
-}  // namespace internal
 }  // namespace codeswitch
 
 #endif

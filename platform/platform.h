@@ -11,7 +11,6 @@
 #include "common/common.h"
 
 namespace codeswitch {
-namespace internal {
 
 class SystemAllocationError : public std::exception {
  public:
@@ -27,7 +26,7 @@ void* allocateChunk(size_t size, size_t alignment);
 
 /** Frees a region allocated with {@code allocateChunk}. */
 void freeChunk(void* addr, size_t size);
-}
-}
+
+}  // namespace codeswitch
 
 #endif

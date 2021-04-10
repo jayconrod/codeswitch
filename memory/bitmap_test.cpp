@@ -9,7 +9,6 @@
 #include "common/common.h"
 
 namespace codeswitch {
-namespace internal {
 
 const int kWordCount = 2;
 word_t testData[kWordCount] = {0x12345678, 0x9abcdef0};
@@ -41,5 +40,4 @@ TEST(BitmapMutation) {
   }
 }
 
-}  // namespace internal
 }  // namespace codeswitch

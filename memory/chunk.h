@@ -15,7 +15,6 @@
 #include "bitmap.h"
 
 namespace codeswitch {
-namespace internal {
 
 class Free;
 class VM;
@@ -148,7 +147,6 @@ inline address Chunk::allocate() {
   return 0;
 }
 
-}  // namespace internal
 }  // namespace codeswitch
 
 #endif

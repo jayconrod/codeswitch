@@ -12,7 +12,6 @@
 #include "memory/heap.h"
 
 namespace codeswitch {
-namespace internal {
 
 /** A fixed-length contiguous range of elements. */
 template <class T>
@@ -48,7 +47,6 @@ Array<T>* Array<T>::slice(length_t i) {
   return reinterpret_cast<Array<T>*>(&data_[i]);
 }
 
-}  // namespace internal
 }  // namespace codeswitch
 
 #endif

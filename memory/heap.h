@@ -14,7 +14,6 @@
 #include "common/common.h"
 
 namespace codeswitch {
-namespace internal {
 
 /**
  * We will never allocate blocks below this address. Lesser values can signal
@@ -94,7 +93,6 @@ void Heap::recordWrite(T** from, T* to) {
   recordWrite(reinterpret_cast<address>(from), reinterpret_cast<address>(to));
 }
 
-}  // namespace internal
 }  // namespace codeswitch
 
 #endif

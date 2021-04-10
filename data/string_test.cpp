@@ -8,7 +8,6 @@
 #include "string.h"
 
 namespace codeswitch {
-namespace internal {
 
 TEST(StringCompare) {
   auto a = String::make("foo");
@@ -39,5 +38,4 @@ TEST(StringSlice) {
   t.fatal("String::slice did not perform bounds check");
 }
 
-}  // namespace internal
 }  // namespace codeswitch

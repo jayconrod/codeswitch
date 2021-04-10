@@ -13,7 +13,6 @@
 #include "memory/ptr.h"
 
 namespace codeswitch {
-namespace internal {
 
 /**
  * An immutable sequence of bytes representing UTF-8 encoded text.
@@ -49,7 +48,6 @@ class HashString {
   static bool equal(const Ptr<String>& l, const Ptr<String>& r) { return l->compare(*r) == 0; }
 };
 
-}  // namespace internal
 }  // namespace codeswitch
 
 #endif

@@ -9,7 +9,6 @@
 #include "string.h"
 
 namespace codeswitch {
-namespace internal {
 
 class HashInt {
  public:
@@ -44,5 +43,4 @@ TEST(MapString) {
   }
 }
 
-}  // namespace internal
 }  // namespace codeswitch

@@ -6,7 +6,6 @@
 #include "bitmap.h"
 
 namespace codeswitch {
-namespace internal {
 
 word_t Bitmap::sizeFor(word_t bitCount) {
   word_t bits = align(bitCount, kBitsInWord);
@@ -61,5 +60,5 @@ word_t Bitmap::bitIndexForBit(word_t index) const {
   ASSERT(index < bitCount_);
   return index % kBitsInWord;
 }
-}
-}
+
+}  // namespace codeswitch
