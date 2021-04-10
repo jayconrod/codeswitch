@@ -37,6 +37,7 @@ class Handle {
   T* operator->() { return get(); }
   const Ptr<T>& operator*() const { return *slot_; }
   Ptr<T>& operator*() { return *slot_; }
+  void reset();
 
  private:
   Ptr<T>* slot_;
@@ -116,6 +117,14 @@ Handle<T>& Handle<T>::operator=(Handle<T>&& handle) {
   slot_ = handle.slot_;
   handle.slot_ = nullptr;
   return *this;
+}
+
+template <class T>
+void Handle<T>::reset() {
+  if (slot_ != nullptr) {
+    handleStorage.freeSlot(reinterpret_cast<address>(slot_));
+  }
+  slot_ = nullptr;
 }
 
 }  // namespace codeswitch

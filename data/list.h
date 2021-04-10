@@ -49,7 +49,8 @@ template <class T>
 List<T>::List() : length_(0), cap_(0) {}
 
 template <class T>
-List<T>::List(const List<T>& list) : data_(list.data_.get()), length_(list.length_), cap_(list.cap_) {}
+List<T>::List(const List<T>& list) :
+    data_(const_cast<Array<T>*>(list.data_.get())), length_(list.length_), cap_(list.cap_) {}
 
 template <class T>
 List<T>::List(List<T>&& list) : data_(list.data_.get()), length_(list.length_), cap_(list.cap_) {
