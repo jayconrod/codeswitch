@@ -1,0 +1,24 @@
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
+cc_library(
+    name = "package",
+    srcs = [
+        "asm.cpp",
+        "function.cpp",
+        "package.cpp",
+        "type.cpp",
+    ],
+    hdrs = [
+        "asm.h",
+        "function.h",
+        "inst.h",
+        "package.h",
+        "type.h",
+    ],
+    visibility = ["//:__subpackages__"],
+    deps = [
+        "//common",
+        "//data",
+        "//memory",
+    ],
+)

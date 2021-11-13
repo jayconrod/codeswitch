@@ -6,6 +6,25 @@
 #ifndef codeswitch_h
 #define codeswitch_h
 
-namespace codeswitch {}
+// common
+#include "common/error.h"
+
+// data
+#include "data/array.h"
+#include "data/list.h"
+#include "data/map.h"
+#include "data/string.h"
+
+// interpreter
+#include "interpreter/interpreter.h"
+
+// memory
+#include "memory/handle.h"
+
+// package
+#include "package/asm.h"
+#include "package/function.h"
+#include "package/package.h"
+#include "package/type.h"
 
 #endif

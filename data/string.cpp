@@ -34,6 +34,12 @@ String* String::make(const std::string& s) {
   return new String(s.size(), data);
 }
 
+String* String::make(const std::string_view& s) {
+  auto data = Array<uint8_t>::make(s.size());
+  std::copy(s.begin(), s.end(), reinterpret_cast<uint8_t*>(data));
+  return new String(s.size(), data);
+}
+
 String::String(const String& s) : length_(s.length_), data_(s.data_.get()) {}
 
 String::String(String&& s) : length_(s.length_), data_(s.data_.get()) {
