@@ -35,8 +35,11 @@ class Handle {
   T* getOrNull() { return slot_ ? slot_->get() : nullptr; }
   const T* operator->() const { return get(); }
   T* operator->() { return get(); }
-  const Ptr<T>& operator*() const { return *slot_; }
-  Ptr<T>& operator*() { return *slot_; }
+  // TODO: are these actually needed? Can they be reused for get?
+  // const Ptr<T>& operator*() const { return *slot_; }
+  // Ptr<T>& operator*() { return *slot_; }
+  const Ptr<T>& ptr() const { return *slot_; }
+  Ptr<T>& ptr() { return *slot_; }
   void reset();
 
  private:

@@ -12,14 +12,23 @@
 namespace codeswitch {
 
 std::string strprintf(const char* fmt, ...) {
-  std::string s;
   va_list args;
   va_start(args, fmt);
-  auto n = vsnprintf(nullptr, 0, fmt, args);
-  s.resize(n + 1);
-  vsnprintf(&s.front(), n, fmt, args);
-  s.resize(n);
+  auto s = vstrprintf(fmt, args);
   va_end(args);
+  return s;
+}
+
+std::string vstrprintf(const char* fmt, va_list args) {
+  va_list args2;
+  va_copy(args2, args);
+  auto n = vsnprintf(nullptr, 0, fmt, args2);
+  va_end(args2);
+
+  std::string s;
+  s.resize(n + 1);
+  vsnprintf(&s.front(), n + 1, fmt, args);
+  s.resize(n);
   return s;
 }
 

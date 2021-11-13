@@ -14,7 +14,8 @@ namespace codeswitch {
 
 /**
  * Wrapper for pointers stored within Blocks. Ensures that pointer fields are
- * properly initialized and writes are recorded.
+ * properly initialized and writes are recorded. Generally should not be used
+ * as a value, since it doesn't make sense to record a write to the C++ stack.
  */
 template <class T>
 class alignas(word_t) Ptr {

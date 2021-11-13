@@ -36,10 +36,10 @@ TEST(MapString) {
   ASSERT_EQ(m->length(), static_cast<length_t>(0));
   for (int i = 0; i < 100; i++) {
     auto key = handle(String::make(std::to_string(i)));
-    ASSERT_FALSE(m->has(*key));
-    m->set(*key, *key);
-    ASSERT_TRUE(m->has(*key));
-    ASSERT_EQ(m->get(*key)->compare(**key), 0);
+    ASSERT_FALSE(m->has(key.ptr()));
+    m->set(key.ptr(), key.ptr());
+    ASSERT_TRUE(m->has(key.ptr()));
+    ASSERT_EQ(m->get(key.ptr())->compare(key.get()), 0);
   }
 }
 

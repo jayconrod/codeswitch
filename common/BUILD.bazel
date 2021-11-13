@@ -4,11 +4,13 @@ cc_library(
     name = "common",
     srcs = [
         "common.cpp",
+        "error.cpp",
         "file.cpp",
         "str.cpp",
     ],
     hdrs = [
         "common.h",
+        "error.h",
         "file.h",
         "str.h",
     ],

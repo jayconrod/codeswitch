@@ -89,6 +89,8 @@ void abort(const char* fileName, int lineNumber, const char* reason, ...);
 
 #define UNREACHABLE() ABORT("unreachable")
 
+#define UNIMPLEMENTED() ABORT("unimplemented")
+
 #define USE(e) (void)(e)
 
 #define CHECK_SUBTYPE_VALUE(type, value) \

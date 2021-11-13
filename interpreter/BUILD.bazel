@@ -1,0 +1,25 @@
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
+
+cc_library(
+    name = "interpreter",
+    srcs = ["interpreter.cpp"],
+    hdrs = ["interpreter.h"],
+    visibility = ["//:__subpackages__"],
+    deps = [
+        "//common",
+        "//memory",
+        "//package",
+    ],
+)
+
+cc_test(
+    name = "interpreter_test",
+    srcs = ["interpreter_test.cpp"],
+    data = glob(["testdata/**"]),
+    deps = [
+        ":interpreter",
+        "//memory",
+        "//package",
+        "//test",
+    ],
+)

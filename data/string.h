@@ -26,6 +26,7 @@ class String {
   String& operator=(String&& s) = delete;
   static String* make(const char* s);
   static String* make(const std::string& s);
+  static String* make(const std::string_view& s);
 
   length_t length() const { return length_; }
   String slice(length_t i, length_t j) const;
@@ -34,6 +35,12 @@ class String {
   intptr_t compare(const String& r) const;
   intptr_t compare(const String* r) const { return compare(*r); }
   intptr_t compare(const char* r) const;
+  bool operator==(const String& s) const { return compare(s) == 0; }
+  bool operator!=(const String& s) const { return compare(s) != 0; }
+  bool operator<(const String& s) const { return compare(s) < 0; }
+  bool operator<=(const String& s) const { return compare(s) <= 0; }
+  bool operator>(const String& s) const { return compare(s) > 0; }
+  bool operator>=(const String& s) const { return compare(s) >= 0; }
 
  private:
   String(length_t length, const Array<uint8_t>* data);

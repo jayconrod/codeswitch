@@ -15,13 +15,16 @@ namespace codeswitch {
 
 class Package {
  public:
-  explicit Package(Array<Ptr<Function>>* functions) : functions_(functions) {}
-  static Package* make(Array<Ptr<Function>>* functions) {
+  explicit Package(List<Ptr<Function>>* functions) : functions_(*functions) {}
+  static Package* make(List<Ptr<Function>>* functions) {
     return new (heap.allocate(sizeof(Package))) Package(functions);
   }
 
+  List<Ptr<Function>>* functions() { return &functions_; }
+  Function* findFunction(String* name);
+
  private:
-  Ptr<Array<Ptr<Function>>> functions_;
+  List<Ptr<Function>> functions_;
 };
 
 }  // namespace codeswitch

@@ -38,8 +38,33 @@ class List {
   length_t length() const { return length_; }
   length_t cap() const { return cap_; }
   void append(const T& elem);
+  void append(T* elems, length_t n);
+
+  template <class IT>
+  class iterator : public std::iterator<std::forward_iterator_tag, T> {
+   public:
+    explicit iterator(IT* p) : p_(p) {}
+    iterator operator++(int) { return p_++; }
+    iterator& operator++() {
+      ++p_;
+      return *this;
+    }
+    IT& operator*() const { return *p_; }
+    IT* operator->() const { return p_; }
+    bool operator==(const iterator& that) { return p_ == that.p_; }
+    bool operator!=(const iterator& that) { return p_ != that.p_; }
+
+   private:
+    IT* p_;
+  };
+  iterator<T> begin() { return iterator(&data_->at(0)); }
+  iterator<T> end() { return iterator(&data_->at(length_)); }
+  iterator<const T> begin() const { return iterator(&data_->at(0)); }
+  iterator<const T> end() const { return iterator(&data_->at(length_)); }
 
  private:
+  void resize(length_t newLength);
+
   Ptr<Array<T>> data_;
   length_t length_;
   length_t cap_;
@@ -104,20 +129,45 @@ T& List<T>::operator[](length_t i) {
 
 template <class T>
 void List<T>::append(const T& elem) {
-  if (length_ == cap_) {
-    auto newCap = 2 * cap_;
+  auto i = length_;
+  resize(length_ + 1);
+  data_->at(i) = elem;
+}
+
+template <class T>
+void List<T>::append(T* elems, length_t n) {
+  resize(length_ + n);
+  for (length_t i = 0; i < n; i++) {
+    data_->at(length_ - n + i) = elems[i];
+  }
+}
+
+template <class T>
+void List<T>::resize(length_t newLength) {
+  if (newLength <= length_) {
+    for (length_t i = length_; i < newLength; i++) {
+      data_->at(i) = T();
+    }
+    length_ = newLength;
+    return;
+  }
+
+  auto newCap = cap_;
+  while (newCap < newLength) {
+    newCap *= 2;
     if (newCap < 8) {
       newCap = 8;
     }
+  }
+  if (newCap > cap_) {
     auto newData = Array<T>::make(newCap);
     for (length_t i = 0; i < length_; i++) {
       newData->at(i) = data_->at(i);
     }
     data_.set(newData);
-    cap_ = newCap;
   }
-  data_->at(length_) = elem;
-  length_++;
+  length_ = newLength;
+  cap_ = newCap;
 }
 
 }  // namespace codeswitch

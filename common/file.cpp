@@ -6,21 +6,38 @@
 #include "file.h"
 
 #include <cstdint>
+#include <cstring>
 #include <exception>
+#include <filesystem>
 #include <fstream>
 #include <vector>
+#include "error.h"
+#include "str.h"
+
+namespace filesystem = std::filesystem;
 
 namespace codeswitch {
 
-std::vector<uint8_t> readFile(const std::string& filename) {
-  std::ifstream f;
-  f.exceptions(std::ios::badbit);
-  f.open(filename, std::fstream::in | std::fstream::binary);
+std::vector<uint8_t> readFile(const filesystem::path& filename) {
+  std::ifstream f(filename);
+  if (!f.good()) {
+    throw FileError(filename, "could not open file");
+  }
   f.seekg(0, std::ios::end);
-  std::vector<uint8_t> data(f.tellg());
+  auto size = f.tellg();
+  if (!f.good()) {
+    throw FileError(filename, "could not get file size");
+  }
   f.seekg(0, std::ios::beg);
+  std::vector<uint8_t> data(size);
   f.read(reinterpret_cast<char*>(data.data()), data.size());
+  if (!f.good()) {
+    throw FileError(filename, "could not read file");
+  }
   return data;
 }
+
+FileError::FileError(const filesystem::path& path, const std::string& message) :
+    Error(strprintf("%s: %s", path.c_str(), message.c_str())), path(path), message(message) {}
 
 }  // namespace codeswitch

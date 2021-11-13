@@ -1,0 +1,7 @@
+function main() {
+  int64 42
+  sys println
+  ret
+}
+
+// Output: 42

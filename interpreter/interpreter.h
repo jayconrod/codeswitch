@@ -6,13 +6,16 @@
 #ifndef interpreter_interpreter_h
 #define interpreter_interpreter_h
 
+#include <iostream>
+
 namespace codeswitch {
 
 template <class T>
 class Handle;
 class Function;
+class Package;
 
-void interpret(Handle<Function> f);
+void interpret(Handle<Package>& package, Handle<Function>& entry, std::ostream& out = std::cerr);
 
 }  // namespace codeswitch
 

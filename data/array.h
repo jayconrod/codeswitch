@@ -7,6 +7,7 @@
 #define data_array_h
 
 #include <cstdint>
+#include <iterator>
 
 #include "common/common.h"
 #include "memory/heap.h"

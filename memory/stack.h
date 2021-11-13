@@ -10,6 +10,17 @@
 
 namespace codeswitch {
 
+class Function;
+class Inst;
+class Package;
+
+struct Frame {
+  Frame* fp;
+  const Inst* ip;
+  Function* fn;
+  Package* pp;
+};
+
 class Stack {
  public:
   Stack();
@@ -19,6 +30,15 @@ class Stack {
   address start() const { return start_; }
   address limit() const { return limit_; }
   inline void check(length_t n);
+
+  Frame* frame() const { return reinterpret_cast<Frame*>(fp); }
+
+  template <class T>
+  void push(const T& v);
+  template <class T>
+  T pop();
+  template <class T>
+  T& at(intptr_t i);
 
   address sp, fp;
 
@@ -36,6 +56,25 @@ void Stack::check(length_t n) {
   if (top < limit_ || top >= sp) {
     throw StackOverflowError();
   }
+}
+
+template <class T>
+void Stack::push(const T& v) {
+  sp -= sizeof(T);
+  *reinterpret_cast<T*>(sp) = v;
+}
+
+template <class T>
+T Stack::pop() {
+  auto v = *reinterpret_cast<T*>(sp);
+  sp += sizeof(T);
+  return v;
+}
+
+template <class T>
+T& Stack::at(intptr_t i) {
+  auto p = sp + i * kWordSize;
+  return *reinterpret_cast<T&>(p);
 }
 
 }  // namespace codeswitch

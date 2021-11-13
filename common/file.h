@@ -7,12 +7,22 @@
 #define common_file_h
 
 #include <cstdint>
+#include <exception>
+#include <filesystem>
 #include <string>
 #include <vector>
+#include "error.h"
 
 namespace codeswitch {
 
-std::vector<uint8_t> readFile(const std::string& filename);
+std::vector<uint8_t> readFile(const std::filesystem::path& filename);
+
+class FileError : public Error {
+ public:
+  FileError(const std::filesystem::path& path, const std::string& message);
+  std::filesystem::path path;
+  std::string message;
+};
 
 }  // namespace codeswitch
 

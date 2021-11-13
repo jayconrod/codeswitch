@@ -1,0 +1,35 @@
+function main() {
+  int64 0
+  call factorial
+  sys println
+  // Output: 1
+
+  int64 1
+  call factorial
+  sys println
+  // Output: 1
+
+  int64 3
+  call factorial
+  sys println
+  // Output: 6
+
+  ret
+}
+
+function factorial(int64) -> (int64) {
+  loadarg 0
+  int64 1
+  gt
+  bif recurse
+  int64 1
+  ret
+recurse:
+  loadarg 0
+  int64 1
+  sub
+  call factorial
+  loadarg 0
+  mul
+  ret
+}
