@@ -18,6 +18,21 @@ namespace codeswitch {
  */
 const length_t kMaxFunctionSize = 0x7FFFFFFF;
 
+/**
+ * Indicates the operation to be performed by an Inst. Each Inst starts with
+ * an Op and may have other operands following that.
+ *
+ * The integer values here end up in serialized bytecode, so changing values
+ * invalidates stored bytecode.
+ *
+ * Keep this list in sync with:
+ *
+ * - Inst::mnemonic
+ * - Inst::size
+ * - PackageBuilder::buildFunction
+ * - interpret
+ * - writeFunction
+ */
 enum class Op : uint8_t {
   // System
   NOP,
@@ -67,6 +82,7 @@ class Inst {
  public:
   Op op;
 
+  const char* mnemonic() const;
   inline word_t size() const;
   inline const Inst* next() const;
 };
@@ -130,6 +146,8 @@ enum class Sys : uint8_t {
   EXIT = 60,
   PRINTLN = 127,
 };
+
+const char* sysMnemonic(Sys sys);
 
 }  // namespace codeswitch
 

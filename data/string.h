@@ -43,6 +43,8 @@ class String {
   bool operator>=(const String& s) const { return compare(s) >= 0; }
 
  private:
+  friend std::ostream& operator<<(std::ostream&, String*);
+
   String(length_t length, const Array<uint8_t>* data);
 
   length_t length_;
@@ -54,6 +56,8 @@ class HashString {
   static word_t hash(const Ptr<String>& s);
   static bool equal(const Ptr<String>& l, const Ptr<String>& r) { return l->compare(*r) == 0; }
 };
+
+std::ostream& operator<<(std::ostream&, String*);
 
 }  // namespace codeswitch
 

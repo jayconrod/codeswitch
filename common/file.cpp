@@ -18,23 +18,36 @@ namespace filesystem = std::filesystem;
 
 namespace codeswitch {
 
+std::vector<uint8_t> readAll(std::istream& is) {
+  if (!is.good()) {
+    throw FileError("<unknown>", "unknown I/O error");
+  }
+  auto pos = is.tellg();
+  is.seekg(0, std::ios::end);
+  if (!is.good()) {
+    throw FileError("<unknown>", "could not get file size");
+  }
+  auto size = is.tellg() - pos;
+  is.seekg(pos, std::ios::beg);
+  std::vector<uint8_t> data(size);
+  is.read(reinterpret_cast<char*>(data.data()), data.size());
+  if (!is.good()) {
+    throw FileError("<unknown>", "could not read file");
+  }
+  return data;
+}
+
 std::vector<uint8_t> readFile(const filesystem::path& filename) {
   std::ifstream f(filename);
   if (!f.good()) {
     throw FileError(filename, "could not open file");
   }
-  f.seekg(0, std::ios::end);
-  auto size = f.tellg();
-  if (!f.good()) {
-    throw FileError(filename, "could not get file size");
+  try {
+    return readAll(f);
+  } catch (FileError& err) {
+    err.path = filename;
+    throw err;
   }
-  f.seekg(0, std::ios::beg);
-  std::vector<uint8_t> data(size);
-  f.read(reinterpret_cast<char*>(data.data()), data.size());
-  if (!f.good()) {
-    throw FileError(filename, "could not read file");
-  }
-  return data;
 }
 
 FileError::FileError(const filesystem::path& path, const std::string& message) :
