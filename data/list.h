@@ -37,6 +37,7 @@ class List {
   T& operator[](length_t i);
   length_t length() const { return length_; }
   length_t cap() const { return cap_; }
+  bool empty() const { return length_ == 0; }
   void append(const T& elem);
   void append(T* elems, length_t n);
 

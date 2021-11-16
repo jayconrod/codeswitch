@@ -101,4 +101,9 @@ word_t HashString::hash(const Ptr<String>& s) {
   return std::hash<std::string_view>{}(s->view());
 }
 
+std::ostream& operator<<(std::ostream& os, String* s) {
+  os.write(reinterpret_cast<const char*>(s->data_.get()), s->length_);
+  return os;
+}
+
 }  // namespace codeswitch

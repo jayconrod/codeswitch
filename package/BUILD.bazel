@@ -1,10 +1,11 @@
-load("@rules_cc//cc:defs.bzl", "cc_library")
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 
 cc_library(
     name = "package",
     srcs = [
         "asm.cpp",
         "function.cpp",
+        "inst.cpp",
         "package.cpp",
         "type.cpp",
     ],
@@ -21,4 +22,22 @@ cc_library(
         "//data",
         "//memory",
     ],
+)
+
+cc_test(
+    name = "package_test",
+    srcs = [
+        "asm_test.cpp",
+    ],
+    data = ["testdata"],
+    deps = [
+        ":package",
+        "//test",
+    ],
+)
+
+filegroup(
+    name = "testdata",
+    srcs = glob(["testdata/**"]),
+    visibility = ["//:__subpackages__"],
 )

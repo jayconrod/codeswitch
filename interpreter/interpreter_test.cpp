@@ -6,6 +6,7 @@
 #include "interpreter.h"
 
 #include <filesystem>
+#include <fstream>
 #include <regex>
 #include <sstream>
 #include "common/file.h"
@@ -20,14 +21,15 @@ namespace codeswitch {
 // For each .csws file in the testdata directory, assemble the file, interpret
 // it, then ensure printed values match expected values written in comments.
 TEST(Assembly) {
-  filesystem::path path("interpreter/testdata");
+  filesystem::path path("package/testdata");
   std::basic_regex outputRe("(?:^|\\n).*?//\\s*Output:\\s*(.*)(?:$|\\n)");
   for (filesystem::directory_iterator it(path); it != filesystem::directory_iterator(); it++) {
     auto filename = it->path();
     if (filename.extension() != ".csws") {
       continue;
     }
-    auto package = readPackageAsm(filename);
+    std::ifstream file(filename);
+    auto package = readPackageAsm(filename, file);
     auto name = handle(String::make("main"));
     auto entry = handle(package->findFunction(name.get()));
     ASSERT_TRUE(entry);

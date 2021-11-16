@@ -9,12 +9,14 @@
 #include <cstdint>
 #include <exception>
 #include <filesystem>
+#include <iostream>
 #include <string>
 #include <vector>
 #include "error.h"
 
 namespace codeswitch {
 
+std::vector<uint8_t> readAll(std::istream& is);
 std::vector<uint8_t> readFile(const std::filesystem::path& filename);
 
 class FileError : public Error {

@@ -15,7 +15,7 @@ cc_library(
 cc_test(
     name = "interpreter_test",
     srcs = ["interpreter_test.cpp"],
-    data = glob(["testdata/**"]),
+    data = ["//package:testdata"],
     deps = [
         ":interpreter",
         "//memory",

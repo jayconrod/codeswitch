@@ -20,7 +20,8 @@ class Package {
     return new (heap.allocate(sizeof(Package))) Package(functions);
   }
 
-  List<Ptr<Function>>* functions() { return &functions_; }
+  List<Ptr<Function>>& functions() { return functions_; }
+  const List<Ptr<Function>>& functions() const { return functions_; }
   Function* findFunction(String* name);
 
  private:

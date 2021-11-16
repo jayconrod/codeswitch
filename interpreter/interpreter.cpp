@@ -98,7 +98,7 @@ void interpret(Handle<Package>& package, Handle<Function>& entry, std::ostream& 
         auto index = *reinterpret_cast<const uint32_t*>(ip + 1);
         auto frame = reinterpret_cast<Frame*>(sp) - 1;
         *frame = Frame{.fp = fp, .ip = ip->next(), .fn = fn, .pp = pp};
-        fn = pp->functions()->at(index).get();
+        fn = pp->functions()[index].get();
         fp = frame;
         sp = reinterpret_cast<word_t*>(fp);
         ip = &fn->insts()[0];

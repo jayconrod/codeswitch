@@ -176,7 +176,7 @@ class PackageBuilder : public AsmPass {
   std::unordered_map<std::string_view, int32_t> functionNameToIndex_;
 };
 
-Handle<Package> readPackageAsm(const filesystem::path& filename) {
+Handle<Package> readPackageAsm(const filesystem::path& filename, std::istream& is) {
   auto data = readFile(filename);
   TokenSet tset(filename);
   auto tokens = AsmLexer(data, tset).lexFile();
@@ -912,6 +912,131 @@ uint8_t* Assembler::addrOf(int32_t offset) {
   }
   UNREACHABLE();
   return nullptr;
+}
+
+static void writeFunction(std::ostream& os, const Package* package, const Function* function);
+static void writeTypeList(std::ostream& os, const List<Ptr<Type>>& types);
+static void writeType(std::ostream& os, const Type* type);
+
+void writePackageAsm(std::ostream& os, const Package* package) {
+  auto sep = "";
+  for (auto& function : package->functions()) {
+    os << sep;
+    sep = "\n\n";
+    writeFunction(os, package, function.get());
+  }
+}
+
+void writeFunction(std::ostream& os, const Package* package, const Function* function) {
+  os << "function " << function->name();
+  writeTypeList(os, function->paramTypes());
+  if (!function->returnTypes().empty()) {
+    os << " -> ";
+    writeTypeList(os, function->returnTypes());
+  }
+  os << " {\n";
+
+  std::unordered_map<int32_t, int32_t> labelIndices;
+  int32_t labelIndex = 1;
+  auto insts = function->insts();
+  for (const Inst* inst = &*insts.begin(); inst < &*insts.end(); inst = inst->next()) {
+    switch (inst->op) {
+      case Op::B:
+      case Op::BIF: {
+        auto delta = *reinterpret_cast<const int32_t*>(inst + 1);
+        auto instOffset = inst - &*insts.begin();
+        auto labelOffset = instOffset + delta;
+        labelIndices[labelOffset] = labelIndex++;
+        break;
+      }
+      default:
+        break;
+    }
+  }
+
+  auto sep = "";
+  for (const Inst* inst = &*insts.begin(); inst < &*insts.end(); inst = inst->next()) {
+    os << sep;
+    sep = "\n";
+    auto instOffset = inst - &insts[0];
+    auto it = labelIndices.find(instOffset);
+    if (it != labelIndices.end()) {
+      os << "L" << it->second << ":\n";
+    }
+
+    os << "  " << inst->mnemonic();
+
+    switch (inst->op) {
+      case Op::B:
+      case Op::BIF: {
+        auto delta = *reinterpret_cast<const int32_t*>(inst + 1);
+        auto instOffset = inst - &*insts.begin();
+        auto labelOffset = instOffset + delta;
+        os << " L" << labelIndices[labelOffset];
+        break;
+      }
+
+      case Op::CALL: {
+        auto index = *reinterpret_cast<const int32_t*>(inst + 1);
+        auto callee = package->functions()[index].get();
+        os << " " << callee->name();
+        break;
+      }
+
+      case Op::INT64: {
+        auto n = *reinterpret_cast<const int64_t*>(inst + 1);
+        os << " " << n;
+        break;
+      }
+
+      case Op::LOADARG:
+      case Op::LOADLOCAL:
+      case Op::STOREARG:
+      case Op::STORELOCAL: {
+        auto n = *reinterpret_cast<const uint16_t*>(inst + 1);
+        os << " " << n;
+        break;
+      }
+
+      case Op::SYS: {
+        auto sys = *reinterpret_cast<const Sys*>(inst + 1);
+        os << " " << sysMnemonic(sys);
+        break;
+      }
+
+      default:
+        break;
+    }
+  }
+}
+
+void writeTypeList(std::ostream& os, const List<Ptr<Type>>& types) {
+  if (types.empty()) {
+    return;
+  }
+  os.put('(');
+  auto sep = "";
+  for (auto& type : types) {
+    os << sep;
+    sep = ", ";
+    writeType(os, type.get());
+  }
+  os.put(')');
+}
+
+void writeType(std::ostream& os, const Type* type) {
+  switch (type->kind()) {
+    case Type::Kind::UNIT:
+      os << "unit";
+      return;
+    case Type::Kind::BOOL:
+      os << "bool";
+      return;
+    case Type::Kind::INT64:
+      os << "int64";
+      return;
+  }
+  UNREACHABLE();
 }
 
 }  // namespace codeswitch
