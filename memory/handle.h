@@ -29,18 +29,15 @@ class Handle {
   Handle& operator=(Handle&& handle);
 
   operator bool() const { return slot_; }
-  const T* get() const {
-    ASSERT(slot_);
-    return *slot_;
-  }
-  T* get() {
+  const T* operator*() const { return **const_cast<Handle<T>*>(this); }
+  T* operator*() {
     ASSERT(slot_);
     return *slot_;
   }
   const T* getOrNull() const { return slot_ ? slot_->get() : nullptr; }
   T* getOrNull() { return slot_ ? slot_->get() : nullptr; }
-  const T* operator->() const { return get(); }
-  T* operator->() { return get(); }
+  const T* operator->() const { return **this; }
+  T* operator->() { return **this; }
   void reset();
 
  private:

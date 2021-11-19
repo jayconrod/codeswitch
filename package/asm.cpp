@@ -451,9 +451,9 @@ Handle<Package> PackageBuilder::build() {
 
   auto functions = List<Ptr<Function>>::create(file_.functions.size());
   for (auto& f : file_.functions) {
-    functions->append(buildFunction(f).get());
+    functions->append(*buildFunction(f));
   }
-  return handle(Package::make(functions.get()));
+  return handle(Package::make(*functions));
 }
 
 struct LabelInfo {
@@ -465,11 +465,11 @@ Handle<Function> PackageBuilder::buildFunction(const AsmFunction& function) {
   auto name = tokenString(function.name);
   auto returnTypes = List<Ptr<Type>>::create(function.returnTypes.size());
   for (auto& type : function.returnTypes) {
-    returnTypes->append(buildType(type).get());
+    returnTypes->append(*buildType(type));
   }
   auto paramTypes = List<Ptr<Type>>::create(function.paramTypes.size());
   for (auto& type : function.paramTypes) {
-    paramTypes->append(buildType(type).get());
+    paramTypes->append(*buildType(type));
   }
 
   Assembler a;
@@ -611,7 +611,7 @@ Handle<Function> PackageBuilder::buildFunction(const AsmFunction& function) {
   }
 
   auto insts = a.finish();
-  return handle(Function::make(*name.get(), *returnTypes.get(), *paramTypes.get(), *insts.get(), frameSize));
+  return handle(Function::make(**name, **returnTypes, **paramTypes, **insts, frameSize));
 }  // namespace codeswitch
 
 Handle<Type> PackageBuilder::buildType(const AsmType& type) {

@@ -31,19 +31,19 @@ Handle<String> String::create(const char* s) {
   length_t length = strlen(s);
   auto array = handle(Array<uint8_t>::make(length));
   std::copy_n(s, length, array->begin());
-  return handle(String::make(reinterpret_cast<Array<const uint8_t>*>(array.get()), length));
+  return handle(String::make(reinterpret_cast<Array<const uint8_t>*>(*array), length));
 }
 
 Handle<String> String::create(const std::string& s) {
   auto array = handle(Array<uint8_t>::make(s.size()));
   std::copy(s.begin(), s.end(), array->begin());
-  return handle(String::make(reinterpret_cast<Array<const uint8_t>*>(array.get()), s.size()));
+  return handle(String::make(reinterpret_cast<Array<const uint8_t>*>(*array), s.size()));
 }
 
 Handle<String> String::create(const std::string_view& s) {
   auto array = handle(Array<uint8_t>::make(s.size()));
   std::copy(s.begin(), s.end(), array->begin());
-  return handle(String::make(reinterpret_cast<Array<const uint8_t>*>(array.get()), s.size()));
+  return handle(String::make(reinterpret_cast<Array<const uint8_t>*>(*array), s.size()));
 }
 
 std::string_view String::view() const {

@@ -42,10 +42,10 @@ TEST(MapString) {
   for (int i = 0; i < 100; i++) {
     auto s = std::to_string(i);
     auto key = String::create(s);
-    ASSERT_FALSE(m->has(*key.get()));
-    m->set(*key.get(), *key.get());
-    ASSERT_TRUE(m->has(*key.get()));
-    ASSERT_EQ(m->get(*key.get()).compare(s), 0);
+    ASSERT_FALSE(m->has(**key));
+    m->set(**key, **key);
+    ASSERT_TRUE(m->has(**key));
+    ASSERT_EQ(m->get(**key).compare(s), 0);
   }
 }
 
