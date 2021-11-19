@@ -31,15 +31,21 @@ TEST(MapInt) {
   ASSERT_EQ(m->length(), static_cast<length_t>(100));
 }
 
+#include <vector>
+
 TEST(MapString) {
-  auto m = handle(Map<Ptr<String>, Ptr<String>, HashString>::make());
+  auto m = handle(Map<String, String, HashString>::make());
   ASSERT_EQ(m->length(), static_cast<length_t>(0));
+  std::vector<int> v;
+  v.emplace_back(12);
+
   for (int i = 0; i < 100; i++) {
-    auto key = handle(String::make(std::to_string(i)));
-    ASSERT_FALSE(m->has(key.ptr()));
-    m->set(key.ptr(), key.ptr());
-    ASSERT_TRUE(m->has(key.ptr()));
-    ASSERT_EQ(m->get(key.ptr())->compare(key.get()), 0);
+    auto s = std::to_string(i);
+    auto key = String::create(s);
+    ASSERT_FALSE(m->has(*key.get()));
+    m->set(*key.get(), *key.get());
+    ASSERT_TRUE(m->has(*key.get()));
+    ASSERT_EQ(m->get(*key.get()).compare(s), 0);
   }
 }
 

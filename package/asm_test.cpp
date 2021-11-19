@@ -36,7 +36,7 @@ TEST(AssembleDisassemble) {
     for (length_t i = 0, n = package1->functions().length(); i < n; i++) {
       auto f1 = package1->functions()[i];
       auto f2 = package2->functions()[i];
-      ASSERT_TRUE(f1->name()->compare(f2->name()) == 0);
+      ASSERT_EQ(f1->name(), f2->name());
       ASSERT_EQ(f1->insts().length(), f2->insts().length());
       auto f1begin = reinterpret_cast<const uint8_t*>(&*f1->insts().begin());
       auto f1end = f1begin + f1->insts().length();

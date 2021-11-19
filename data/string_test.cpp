@@ -10,28 +10,47 @@
 namespace codeswitch {
 
 TEST(StringCompare) {
-  auto a = String::make("foo");
-  ASSERT_EQ(a->compare(a), 0);
+  auto a = String::create("foo");
+  ASSERT_EQ(a->compare(*a.get()), 0);
   ASSERT_EQ(a->compare("foo"), 0);
-  auto b = String::make(std::string("foo"));
-  ASSERT_EQ(a->compare(b), 0);
-  auto c = String::make("bar");
-  ASSERT_TRUE(a->compare(c) > 0);
-  ASSERT_TRUE(c->compare(a) < 0);
+  auto b = String::create(std::string("foo"));
+  ASSERT_EQ(a->compare(*b.get()), 0);
+  auto c = String::create("bar");
+  ASSERT_TRUE(a->compare(*c.get()) > 0);
+  ASSERT_TRUE(c->compare(*a.get()) < 0);
   ASSERT_TRUE(a->compare("bar") > 0);
-  ASSERT_TRUE(a->compare(a->slice(0, 2)) > 0);
+  *b.get() = *a.get();
+  b->slice(0, 2);
+  ASSERT_TRUE(a->compare(*b.get()) > 0);
 }
 
 TEST(StringSlice) {
-  auto a = String::make("abcde");
-  ASSERT_EQ(a->slice(0, 0).compare(""), 0);
-  ASSERT_EQ(a->slice(2, 2).compare(""), 0);
-  ASSERT_EQ(a->slice(5, 5).compare(""), 0);
-  ASSERT_EQ(a->slice(0, 2).compare("ab"), 0);
-  ASSERT_EQ(a->slice(2, 5).compare("cde"), 0);
+  auto a = String::create("abcde");
+  auto s = handle(String::make());
 
+  *s.get() = *a.get();
+  s->slice(0, 0);
+  ASSERT_EQ(s->compare(""), 0);
+
+  *s.get() = *a.get();
+  s->slice(2, 2);
+  ASSERT_EQ(s->compare(""), 0);
+
+  *s.get() = *a.get();
+  s->slice(5, 5);
+  ASSERT_EQ(s->compare(""), 0);
+
+  *s.get() = *a.get();
+  s->slice(0, 2);
+  ASSERT_EQ(s->compare("ab"), 0);
+
+  *s.get() = *a.get();
+  s->slice(2, 5);
+  ASSERT_EQ(s->compare("cde"), 0);
+
+  *s.get() = *a.get();
   try {
-    a->slice(0, 6);
+    s->slice(0, 6);
   } catch (BoundsCheckError& err) {
     return;
   }
