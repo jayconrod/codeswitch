@@ -57,12 +57,12 @@ void interpret(Handle<Package>& package, Handle<Function>& entry, std::ostream& 
   } while (false)
 
   // Create the initial stack frame.
-  *fp = Frame{.fp = 0, .ip = 0, .fn = entry.get(), .pp = package.get()};
+  *fp = Frame{.fp = 0, .ip = 0, .fn = *entry, .pp = *package};
 
   // Set other registers.
-  auto fn = entry.get();
+  auto fn = *entry;
   auto ip = &fn->insts().at(0);
-  auto pp = package.get();
+  auto pp = *package;
 
   while (true) {
     switch (ip->op) {

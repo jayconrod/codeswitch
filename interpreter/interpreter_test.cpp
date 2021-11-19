@@ -31,7 +31,7 @@ TEST(Assembly) {
     std::ifstream file(filename);
     auto package = readPackageAsm(filename, file);
     auto name = String::create("main");
-    auto entry = handle(package->findFunction(*name.get()));
+    auto entry = handle(package->findFunction(**name));
     ASSERT_TRUE(entry);
 
     std::stringstream ss;

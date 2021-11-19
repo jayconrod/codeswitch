@@ -29,7 +29,7 @@ TEST(AssembleDisassemble) {
     std::ifstream file(filename);
     auto package1 = readPackageAsm(filename, file);
     std::stringstream dis;
-    writePackageAsm(dis, package1.get());
+    writePackageAsm(dis, *package1);
     auto package2 = readPackageAsm(filename, dis);
 
     ASSERT_EQ(package1->functions().length(), package2->functions().length());
