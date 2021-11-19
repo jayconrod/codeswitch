@@ -21,17 +21,26 @@ template <class T>
 class alignas(word_t) Ptr {
  public:
   Ptr() : p_(nullptr) {}
-  explicit Ptr(T* q) { set(q); }
-  Ptr(const Ptr& q) { set(q.p_); }
-  Ptr(Ptr&& q) {
+  template <class S>
+  Ptr(S* q) {
+    set(q);
+  }
+  template <class S>
+  Ptr(const Ptr<S>& q) {
+    set(q.p_);
+  }
+  template <class S>
+  Ptr(Ptr<S>&& q) {
     set(q.p_);
     q.set(nullptr);
   }
-  Ptr& operator=(const Ptr& q) {
+  template <class S>
+  Ptr& operator=(const Ptr<S>& q) {
     set(q.p_);
     return *this;
   }
-  Ptr& operator=(Ptr&& q) {
+  template <class S>
+  Ptr& operator=(Ptr<S>&& q) {
     set(q.p_);
     q.set(nullptr);
     return *this;
@@ -48,12 +57,10 @@ class alignas(word_t) Ptr {
     Heap::recordWrite(&p_, q);
   }
 
-  bool operator==(T* q) { return p_ == q; }
   template <class S>
   bool operator==(const Ptr<S>& q) const {
     return p_ == q.p_;
   }
-  bool operator!=(T* q) const { return p_ != q; }
   template <class S>
   bool operator!=(const Ptr<S>& q) const {
     return p_ != q.p_;

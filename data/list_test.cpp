@@ -6,14 +6,18 @@
 #include "test/test.h"
 
 #include "list.h"
+#include "memory/handle.h"
 
 namespace codeswitch {
 
 TEST(ListBasic) {
-  auto list = List<int>::make(3);
+  auto list = handle(List<int>::make());
+  ASSERT_EQ(list->length(), static_cast<length_t>(0));
+  ASSERT_EQ(list->cap(), static_cast<length_t>(0));
+
+  list->reserve(3);
   ASSERT_EQ(list->length(), static_cast<length_t>(0));
   ASSERT_EQ(list->cap(), static_cast<length_t>(3));
-
   list->append(10);
   list->append(20);
   list->append(30);

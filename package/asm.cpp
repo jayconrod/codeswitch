@@ -449,9 +449,9 @@ Handle<Package> PackageBuilder::build() {
     functionNameToIndex_[text(file_.functions[i].name)] = i;
   }
 
-  auto functions = handle(List<Ptr<Function>>::make(file_.functions.size()));
+  auto functions = List<Ptr<Function>>::create(file_.functions.size());
   for (auto& f : file_.functions) {
-    functions->append(buildFunction(f).ptr());
+    functions->append(buildFunction(f).get());
   }
   return handle(Package::make(functions.get()));
 }
@@ -463,13 +463,13 @@ struct LabelInfo {
 
 Handle<Function> PackageBuilder::buildFunction(const AsmFunction& function) {
   auto name = tokenString(function.name);
-  auto returnTypes = handle(List<Ptr<Type>>::make(function.returnTypes.size()));
+  auto returnTypes = List<Ptr<Type>>::create(function.returnTypes.size());
   for (auto& type : function.returnTypes) {
-    returnTypes->append(buildType(type).ptr());
+    returnTypes->append(buildType(type).get());
   }
-  auto paramTypes = handle(List<Ptr<Type>>::make(function.paramTypes.size()));
+  auto paramTypes = List<Ptr<Type>>::create(function.paramTypes.size());
   for (auto& type : function.paramTypes) {
-    paramTypes->append(buildType(type).ptr());
+    paramTypes->append(buildType(type).get());
   }
 
   Assembler a;
@@ -611,7 +611,7 @@ Handle<Function> PackageBuilder::buildFunction(const AsmFunction& function) {
   }
 
   auto insts = a.finish();
-  return handle(Function::make(name.get(), *returnTypes.get(), *paramTypes.get(), *insts.get(), frameSize));
+  return handle(Function::make(*name.get(), *returnTypes.get(), *paramTypes.get(), *insts.get(), frameSize));
 }  // namespace codeswitch
 
 Handle<Type> PackageBuilder::buildType(const AsmType& type) {
@@ -683,7 +683,7 @@ std::string_view PackageBuilder::identToken(Token token) {
 }
 
 Handle<String> PackageBuilder::tokenString(Token t) {
-  return handle(String::make(std::string(reinterpret_cast<const char*>(data_.data() + t.begin), t.end - t.begin)));
+  return String::create(std::string(reinterpret_cast<const char*>(data_.data() + t.begin), t.end - t.begin));
 }
 
 Assembler::Assembler() {
@@ -691,7 +691,7 @@ Assembler::Assembler() {
 }
 
 Handle<List<Inst>> Assembler::finish() {
-  auto l = handle(List<Inst>::make(size_));
+  auto l = List<Inst>::create(size_);
   for (auto& f : fragments_) {
     l->append(reinterpret_cast<Inst*>(f.begin), f.end - f.begin);
   }

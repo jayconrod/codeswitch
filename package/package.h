@@ -22,7 +22,7 @@ class Package {
 
   List<Ptr<Function>>& functions() { return functions_; }
   const List<Ptr<Function>>& functions() const { return functions_; }
-  Function* findFunction(String* name);
+  Function* findFunction(const String& name);
 
  private:
   List<Ptr<Function>> functions_;

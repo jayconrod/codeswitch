@@ -29,21 +29,22 @@ class Handle {
   Handle& operator=(Handle&& handle);
 
   operator bool() const { return slot_; }
-  const T* get() const { return slot_->get(); }
-  T* get() { return slot_->get(); }
+  const T* get() const {
+    ASSERT(slot_);
+    return *slot_;
+  }
+  T* get() {
+    ASSERT(slot_);
+    return *slot_;
+  }
   const T* getOrNull() const { return slot_ ? slot_->get() : nullptr; }
   T* getOrNull() { return slot_ ? slot_->get() : nullptr; }
   const T* operator->() const { return get(); }
   T* operator->() { return get(); }
-  // TODO: are these actually needed? Can they be reused for get?
-  // const Ptr<T>& operator*() const { return *slot_; }
-  // Ptr<T>& operator*() { return *slot_; }
-  const Ptr<T>& ptr() const { return *slot_; }
-  Ptr<T>& ptr() { return *slot_; }
   void reset();
 
  private:
-  Ptr<T>* slot_;
+  T** slot_ = nullptr;
 };
 
 template <class T>
@@ -72,15 +73,15 @@ class HandleStorage {
 extern HandleStorage handleStorage;
 
 template <class T>
-Handle<T>::Handle(T* block) : slot_(reinterpret_cast<Ptr<T>*>(handleStorage.allocSlot())) {
-  slot_->set(block);
+Handle<T>::Handle(T* block) : slot_(reinterpret_cast<T**>(handleStorage.allocSlot())) {
+  *slot_ = block;
 }
 
 template <class T>
 Handle<T>::Handle(const Handle<T>& handle) {
   if (handle.slot_ != nullptr) {
     slot_ = reinterpret_cast<Ptr<T>*>(handleStorage.allocSlot());
-    slot_->set(handle->slot_->get())* slot_ = *handle.slot_;
+    *slot_ = *handle.slot_;
   }
 }
 

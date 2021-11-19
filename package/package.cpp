@@ -7,9 +7,9 @@
 
 namespace codeswitch {
 
-Function* Package::findFunction(String* name) {
+Function* Package::findFunction(const String& name) {
   for (auto& fn : functions_) {
-    if (*fn->name() == *name) {
+    if (fn->name() == name) {
       return fn.get();
     }
   }

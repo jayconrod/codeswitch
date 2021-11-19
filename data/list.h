@@ -8,6 +8,7 @@
 
 #include "array.h"
 #include "common/common.h"
+#include "memory/handle.h"
 #include "memory/ptr.h"
 
 namespace codeswitch {
@@ -24,100 +25,46 @@ namespace codeswitch {
 template <class T>
 class List {
  public:
-  List();
-  List(const List& list);
-  List(List&& list);
-  List& operator=(const List& list);
-  List& operator=(List&& list);
-  static List* make(length_t cap);
+  List() = default;
+  static List* make();
+  static Handle<List> create(length_t cap);
 
   const T& at(length_t i) const { return (*this)[i]; }
   T& at(length_t i) { return (*this)[i]; }
-  const T& operator[](length_t i) const;
+  const T& operator[](length_t i) const { return (*const_cast<List<T>*>(this))[i]; }
   T& operator[](length_t i);
   length_t length() const { return length_; }
-  length_t cap() const { return cap_; }
-  bool empty() const { return length_ == 0; }
-  void append(const T& elem);
-  void append(T* elems, length_t n);
+  length_t cap() const { return data_.length(); }
+  bool empty() const { return length() == 0; }
+  template <class S>
+  void append(const S& elem);
+  template <class S>
+  void append(S* elems, length_t n);
+  void reserve(length_t newCap);
 
-  template <class IT>
-  class iterator : public std::iterator<std::forward_iterator_tag, T> {
-   public:
-    explicit iterator(IT* p) : p_(p) {}
-    iterator operator++(int) { return p_++; }
-    iterator& operator++() {
-      ++p_;
-      return *this;
-    }
-    IT& operator*() const { return *p_; }
-    IT* operator->() const { return p_; }
-    bool operator==(const iterator& that) { return p_ == that.p_; }
-    bool operator!=(const iterator& that) { return p_ != that.p_; }
-
-   private:
-    IT* p_;
-  };
-  iterator<T> begin() { return iterator(&data_->at(0)); }
-  iterator<T> end() { return iterator(&data_->at(length_)); }
-  iterator<const T> begin() const { return iterator(&data_->at(0)); }
-  iterator<const T> end() const { return iterator(&data_->at(length_)); }
+  const T* begin() const { return const_cast<List<T>*>(this)->begin(); }
+  T* begin() { return data_.begin(); }
+  const T* end() const { return const_cast<List<T>*>(this)->end(); }
+  T* end() { return data_.begin() + length_; }
 
  private:
-  void resize(length_t newLength);
+  List(BoundArray<T>* array, length_t length);
+  void reserveMore(length_t more);
 
-  Ptr<Array<T>> data_;
-  length_t length_;
-  length_t cap_;
+  BoundArray<T> data_;
+  length_t length_ = 0;
 };
 
 template <class T>
-List<T>::List() : length_(0), cap_(0) {}
-
-template <class T>
-List<T>::List(const List<T>& list) :
-    data_(const_cast<Array<T>*>(list.data_.get())), length_(list.length_), cap_(list.cap_) {}
-
-template <class T>
-List<T>::List(List<T>&& list) : data_(list.data_.get()), length_(list.length_), cap_(list.cap_) {
-  list.data_.set(nullptr);
-  list.length_ = 0;
-  list.cap_ = 0;
-}
-
-template <class T>
-List<T>& List<T>::operator=(const List<T>& list) {
-  data_.set(list.data_.get());
-  length_ = list.length_;
-  cap_ = list.cap_;
-  return *this;
-}
-
-template <class T>
-List<T>& List<T>::operator=(List<T>&& list) {
-  data_.set(list.data_.get());
-  length_ = list.length_;
-  cap_ = list.cap_;
-  list.data_.set(nullptr);
-  list.length_ = 0;
-  list.cap_ = 0;
-  return *this;
-}
-
-template <class T>
-List<T>* List<T>::make(length_t cap) {
-  auto list = new (heap.allocate(sizeof(List<T>))) List<T>();
-  list->data_.set(Array<T>::make(cap));
-  list->cap_ = cap;
-  return list;
-}
-
-template <class T>
-const T& List<T>::operator[](length_t i) const {
-  if (i >= length_) {
+List<T>::List(BoundArray<T>* data, length_t cap) : data_(data), length_(length) {
+  if (length_ > data->length_) {
     throw BoundsCheckError();
   }
-  return data_->at(i);
+}
+
+template <class T>
+List<T>* List<T>::make() {
+  return new (heap.allocate(sizeof(List))) List();
 }
 
 template <class T>
@@ -125,50 +72,54 @@ T& List<T>::operator[](length_t i) {
   if (i >= length_) {
     throw BoundsCheckError();
   }
-  return data_->at(i);
+  return data_[i];
 }
 
 template <class T>
-void List<T>::append(const T& elem) {
-  auto i = length_;
-  resize(length_ + 1);
-  data_->at(i) = elem;
+Handle<List<T>> List<T>::create(length_t length) {
+  auto list = handle(List<T>::make());
+  list->reserve(length);
+  return list;
 }
 
 template <class T>
-void List<T>::append(T* elems, length_t n) {
-  resize(length_ + n);
+template <class S>
+void List<T>::append(const S& elem) {
+  reserveMore(1);
+  data_[length_++] = elem;
+}
+
+template <class T>
+template <class S>
+void List<T>::append(S* elems, length_t n) {
+  reserveMore(n);
   for (length_t i = 0; i < n; i++) {
-    data_->at(length_ - n + i) = elems[i];
+    data_[length_++] = elems[i];
   }
 }
 
 template <class T>
-void List<T>::resize(length_t newLength) {
-  if (newLength <= length_) {
-    for (length_t i = length_; i < newLength; i++) {
-      data_->at(i) = T();
-    }
-    length_ = newLength;
+void List<T>::reserve(length_t newCap) {
+  if (newCap <= cap()) {
     return;
   }
+  auto newArray = Array<T>::make(newCap);
+  for (length_t i = 0; i < length_; i++) {
+    newArray->at(i) = data_[i];
+  }
+  data_.set(newArray, newCap);
+}
 
-  auto newCap = cap_;
-  while (newCap < newLength) {
-    newCap *= 2;
-    if (newCap < 8) {
-      newCap = 8;
-    }
+template <class T>
+void List<T>::reserveMore(length_t more) {
+  if (length() + more <= cap()) {
+    return;
   }
-  if (newCap > cap_) {
-    auto newData = Array<T>::make(newCap);
-    for (length_t i = 0; i < length_; i++) {
-      newData->at(i) = data_->at(i);
-    }
-    data_.set(newData);
+  auto newCap = nextPowerOf2(length() + more);
+  if (newCap < 8) {
+    newCap = 8;
   }
-  length_ = newLength;
-  cap_ = newCap;
+  reserve(newCap);
 }
 
 }  // namespace codeswitch

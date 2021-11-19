@@ -15,94 +15,91 @@
 
 namespace codeswitch {
 
-void* String::operator new(size_t size) {
-  return heap.allocate(size);
+String* String::make() {
+  return new (heap.allocate(sizeof(String))) String();
 }
 
-String::String(length_t length, const Array<uint8_t>* data) : length_(length), data_(data) {}
+String* String::make(BoundArray<const uint8_t>& data) {
+  return new (heap.allocate(sizeof(String))) String(data);
+}
 
-String* String::make(const char* s) {
+String* String::make(Array<const uint8_t>* array, length_t length) {
+  return new (heap.allocate(sizeof(String))) String(array, length);
+}
+
+Handle<String> String::create(const char* s) {
   length_t length = strlen(s);
-  auto data = Array<uint8_t>::make(length);
-  std::copy_n(s, length, reinterpret_cast<uint8_t*>(data));
-  return new String(length, data);
+  auto array = handle(Array<uint8_t>::make(length));
+  std::copy_n(s, length, array->begin());
+  return handle(String::make(reinterpret_cast<Array<const uint8_t>*>(array.get()), length));
 }
 
-String* String::make(const std::string& s) {
-  auto data = Array<uint8_t>::make(s.size());
-  std::copy(s.begin(), s.end(), reinterpret_cast<uint8_t*>(data));
-  return new String(s.size(), data);
+Handle<String> String::create(const std::string& s) {
+  auto array = handle(Array<uint8_t>::make(s.size()));
+  std::copy(s.begin(), s.end(), array->begin());
+  return handle(String::make(reinterpret_cast<Array<const uint8_t>*>(array.get()), s.size()));
 }
 
-String* String::make(const std::string_view& s) {
-  auto data = Array<uint8_t>::make(s.size());
-  std::copy(s.begin(), s.end(), reinterpret_cast<uint8_t*>(data));
-  return new String(s.size(), data);
-}
-
-String::String(const String& s) : length_(s.length_), data_(s.data_.get()) {}
-
-String::String(String&& s) : length_(s.length_), data_(s.data_.get()) {
-  s.data_.set(nullptr);
-}
-
-String& String::operator=(const String& s) {
-  length_ = s.length_;
-  data_.set(s.data_.get());
-  return *this;
-}
-
-String String::slice(length_t i, length_t j) const {
-  if (j > length_ || j < i) {
-    throw BoundsCheckError();
-  }
-  return String(j - i, data_.get()->slice(i));
+Handle<String> String::create(const std::string_view& s) {
+  auto array = handle(Array<uint8_t>::make(s.size()));
+  std::copy(s.begin(), s.end(), array->begin());
+  return handle(String::make(reinterpret_cast<Array<const uint8_t>*>(array.get()), s.size()));
 }
 
 std::string_view String::view() const {
-  return std::string_view(reinterpret_cast<const char*>(&data_->at(0)), length_);
+  return std::string_view(reinterpret_cast<const char*>(data_.begin()), length());
+}
+
+void String::slice(length_t i, length_t j) {
+  data_.slice(i, j);
 }
 
 intptr_t String::compare(const String& r) const {
   if (this == &r) {
     return 0;
   }
-  auto n = std::min(length_, r.length_);
-  auto cmp = memcmp(data_.get(), r.data_.get(), n);
+  auto n = std::min(length(), r.length());
+  auto cmp = memcmp(data_.begin(), r.data_.begin(), n);
   if (cmp != 0) {
     return cmp;
   }
-  auto ln = static_cast<intptr_t>(length_);
-  auto rn = static_cast<intptr_t>(r.length_);
-  return ln - rn;
+  return length() - r.length();
 }
 
-intptr_t String::compare(const char* s) const {
-  auto ld = data_.get();
+intptr_t String::compare(const char* r) const {
+  auto l = data_.begin();
   length_t i;
-  for (i = 0; i < length_ && s[i] != '\0'; i++) {
-    auto lb = static_cast<intptr_t>(ld->at(i));
-    auto rb = static_cast<intptr_t>(s[i]);
+  for (i = 0; i < length() && r[i] != '\0'; i++) {
+    auto lb = static_cast<intptr_t>(l[i]);
+    auto rb = static_cast<intptr_t>(r[i]);
     auto cmp = lb - rb;
     if (cmp != 0) {
       return cmp;
     }
   }
-  if (i < length_) {
+  if (i < length()) {
     return 1;
-  } else if (s[i] != '\0') {
+  } else if (r[i] != '\0') {
     return -1;
   } else {
     return 0;
   }
 }
 
-word_t HashString::hash(const Ptr<String>& s) {
-  return std::hash<std::string_view>{}(s->view());
+intptr_t String::compare(const std::string& s) const {
+  return compare(std::string_view(s));
 }
 
-std::ostream& operator<<(std::ostream& os, String* s) {
-  os.write(reinterpret_cast<const char*>(s->data_.get()), s->length_);
+intptr_t String::compare(const std::string_view& s) const {
+  return std::lexicographical_compare(data_.begin(), data_.end(), s.begin(), s.end());
+}
+
+word_t HashString::hash(const String& s) {
+  return std::hash<std::string_view>{}(s.view());
+}
+
+std::ostream& operator<<(std::ostream& os, const String& s) {
+  os.write(reinterpret_cast<const char*>(s.begin()), s.length());
   return os;
 }
 
