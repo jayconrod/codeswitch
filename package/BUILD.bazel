@@ -7,7 +7,6 @@ cc_library(
         "function.cpp",
         "inst.cpp",
         "package.cpp",
-        "serial.cpp",
         "type.cpp",
     ],
     hdrs = [
@@ -15,7 +14,6 @@ cc_library(
         "function.h",
         "inst.h",
         "package.h",
-        "serial.h",
         "type.h",
     ],
     visibility = ["//:__subpackages__"],

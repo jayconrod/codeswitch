@@ -1,0 +1,9 @@
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
+cc_library(
+    name = "flag",
+    srcs = ["flag.cpp"],
+    hdrs = ["flag.h"],
+    visibility = ["//visibility:public"],
+    deps = ["//common"],
+)
