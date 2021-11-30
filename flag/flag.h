@@ -31,10 +31,15 @@ class FlagSet {
   FlagSet(const std::string& programName, const std::string& shortUsage) :
       programName_(programName), shortUsage_(shortUsage) {}
 
+  enum class Opt : bool { OPTIONAL = false, MANDATORY = true };
+  enum class HasValue : bool { IMPLICIT_VALUE = false, EXPLICIT_VALUE = true };
+
   void varFlag(const std::string& name, std::function<void(const std::string&)> parse, const std::string& description,
-               bool mandatory);
+               Opt opt, HasValue hasValue);
+  void boolFlag(bool* value, const std::string& name, bool defaultValue, const std::string& description,
+                Opt opt = Opt::OPTIONAL);
   void stringFlag(std::string* value, const std::string& name, const std::string& defaultValue,
-                  const std::string& description, bool mandatory);
+                  const std::string& description, Opt opt = Opt::OPTIONAL);
 
   size_t parse(int argc, char* argv[]);
   size_t parse(const std::vector<std::string>& args);
@@ -45,7 +50,8 @@ class FlagSet {
     std::string name;
     std::function<void(const std::string&)> parse;
     std::string description;
-    bool mandatory;
+    Opt opt;
+    HasValue hasValue;
 
     static bool less(const FlagSpec& l, const std::string& r);
   };

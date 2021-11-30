@@ -17,7 +17,7 @@
 int main(int argc, char* argv[]) {
   codeswitch::FlagSet flags("test", "test [-run=testname]");
   codeswitch::TestRunner runner;
-  flags.stringFlag(&runner.filter, "run", "", "name of test to run (all tests are run by default)", false);
+  flags.stringFlag(&runner.filter, "run", "", "name of test to run (all tests are run by default)");
   try {
     flags.parse(argc - 1, argv + 1);
   } catch (std::exception& ex) {

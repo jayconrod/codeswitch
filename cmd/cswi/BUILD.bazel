@@ -1,0 +1,14 @@
+load("@rules_cc//cc:defs.bzl", "cc_binary")
+
+cc_binary(
+    name = "cswi",
+    srcs = ["cswi.cpp"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//common",
+        "//flag",
+        "//interpreter",
+        "//memory",
+        "//package",
+    ],
+)
