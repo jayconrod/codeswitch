@@ -36,6 +36,7 @@ int main(int argc, char* argv[]) {
       std::ifstream inFile(inPath);
       auto package = codeswitch::readPackageAsm(inPath, inFile);
       inFile.close();
+      package->validate();
       package->writeToFile(outPath);
     }
   } catch (const std::exception& ex) {

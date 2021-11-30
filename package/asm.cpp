@@ -847,7 +847,7 @@ void Assembler::xor_() {
 
 void Assembler::ensureSpace(length_t n) {
   if (size_ + n > kMaxFunctionSize) {
-    throw errorf("maximum function size exceeded");
+    throw Error("maximum function size exceeded");
   }
   size_ += n;
   if (fragments_.back().end + n > fragments_.back().begin + sizeof(fragments_.back().begin)) {

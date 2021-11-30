@@ -8,5 +8,6 @@ cc_library(
     deps = [
         "//common",
         "//flag",
+        "//package",  # for init
     ],
 )

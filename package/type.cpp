@@ -23,8 +23,32 @@ word_t Type::size() const {
   return ~0;
 }
 
+bool Type::operator==(const Type& other) const {
+  return kind_ == other.kind_;
+}
+
 word_t Type::hash() const {
   return std::hash<int>{}(kind_);
+}
+
+std::ostream& operator<<(std::ostream& os, const Type& type) {
+  return os << type.kind_;
+}
+
+std::ostream& operator<<(std::ostream& os, Type::Kind kind) {
+  const char* name;
+  switch (kind) {
+    case Type::Kind::UNIT:
+      name = "unit";
+      break;
+    case Type::Kind::BOOL:
+      name = "bool";
+      break;
+    case Type::Kind::INT64:
+      name = "int64";
+      break;
+  }
+  return os << name;
 }
 
 }  // namespace codeswitch

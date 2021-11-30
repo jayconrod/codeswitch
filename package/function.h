@@ -16,6 +16,8 @@
 
 namespace codeswitch {
 
+class Package;
+
 class Function {
  public:
   Function() = default;
@@ -24,8 +26,10 @@ class Function {
       name(name), paramTypes(paramTypes), returnTypes(returnTypes), insts(insts), frameSize(frameSize) {}
   static Function* make(const String& name, List<Ptr<Type>>& paramTypes, List<Ptr<Type>>& returnTypes,
                         List<Inst>& insts, length_t frameSize) {
-    return new (heap.allocate(sizeof(Function))) Function(name, paramTypes, returnTypes, insts, frameSize);
+    return new (heap->allocate(sizeof(Function))) Function(name, paramTypes, returnTypes, insts, frameSize);
   }
+
+  void validate(Handle<Package>& package);
 
   String name;
   List<Ptr<Type>> paramTypes;

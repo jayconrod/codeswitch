@@ -41,6 +41,7 @@ class String {
   bool isNull() const { return data_.isNull(); }
   length_t length() const { return data_.length(); }
   std::string_view view() const;
+  std::string str() const;
   const uint8_t* begin() const { return data_.begin(); }
   const uint8_t* end() const { return data_.end(); }
 

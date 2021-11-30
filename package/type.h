@@ -6,6 +6,7 @@
 #ifndef package_type_h
 #define package_type_h
 
+#include <iostream>
 #include "common/common.h"
 #include "memory/heap.h"
 
@@ -21,7 +22,7 @@ class Type {
 
   Type() = default;
   explicit Type(Kind kind) : kind_(kind) {}
-  static Type* make(Kind kind) { return new (heap.allocate(sizeof(Type))) Type(kind); }
+  static Type* make(Kind kind) { return new (heap->allocate(sizeof(Type))) Type(kind); }
 
   Kind kind() const { return kind_; }
   word_t size() const;
@@ -30,8 +31,12 @@ class Type {
   word_t hash() const;
 
  private:
+  friend std::ostream& operator<<(std::ostream&, const Type&);
   Kind kind_ = Kind::UNIT;
 };
+
+std::ostream& operator<<(std::ostream& os, const Type& type);
+std::ostream& operator<<(std::ostream& os, Type::Kind kind);
 
 }  // namespace codeswitch
 

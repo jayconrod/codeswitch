@@ -16,15 +16,15 @@
 namespace codeswitch {
 
 String* String::make() {
-  return new (heap.allocate(sizeof(String))) String();
+  return new (heap->allocate(sizeof(String))) String();
 }
 
 String* String::make(BoundArray<const uint8_t>& data) {
-  return new (heap.allocate(sizeof(String))) String(data);
+  return new (heap->allocate(sizeof(String))) String(data);
 }
 
 String* String::make(Array<const uint8_t>* array, length_t length) {
-  return new (heap.allocate(sizeof(String))) String(array, length);
+  return new (heap->allocate(sizeof(String))) String(array, length);
 }
 
 Handle<String> String::create(const char* s) {
@@ -48,6 +48,10 @@ Handle<String> String::create(const std::string_view& s) {
 
 std::string_view String::view() const {
   return std::string_view(reinterpret_cast<const char*>(data_.begin()), length());
+}
+
+std::string String::str() const {
+  return std::string(reinterpret_cast<const char*>(data_.begin()), length());
 }
 
 void String::slice(length_t i, length_t j) {

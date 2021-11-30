@@ -65,7 +65,7 @@ List<T>::List(BoundArray<T>* data, length_t cap) : data_(data), length_(length) 
 
 template <class T>
 List<T>* List<T>::make() {
-  return new (heap.allocate(sizeof(List))) List();
+  return new (heap->allocate(sizeof(List))) List();
 }
 
 template <class T>

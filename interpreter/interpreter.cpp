@@ -241,6 +241,7 @@ void interpret(Handle<Package>& package, Handle<Function>& entry, std::ostream& 
             break;
           }
           case Sys::PRINTLN: {
+            // TODO: support types other than int64
             auto value = POP();
             out << value << std::endl;
             break;

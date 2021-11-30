@@ -54,7 +54,7 @@ class Map {
 
 template <class K, class V, class H>
 Map<K, V, H>* Map<K, V, H>::make() {
-  return new (heap.allocate(sizeof(Map<K, V, H>))) Map<K, V, H>;
+  return new (heap->allocate(sizeof(Map<K, V, H>))) Map<K, V, H>;
 }
 
 template <class K, class V, class H>

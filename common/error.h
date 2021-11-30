@@ -17,11 +17,10 @@ class Error : public std::exception {
   explicit Error(const std::string& what) : what_(what) {}
   virtual const char* what() const noexcept override { return what_.c_str(); }
 
- private:
+ protected:
   std::string what_;
 };
 
-Error errorf(const char* fmt, ...);
 template <class... Args>
 Error errorstr(Args... args) {
   return Error(buildString(args...));

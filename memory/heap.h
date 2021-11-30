@@ -78,6 +78,8 @@ class Heap {
 
   /** Reclaim memory used by blocks that are no longer reachable. */
   void collectGarbage();
+  void gcLock();
+  void gcUnlock();
 
  private:
   void addChunk();
@@ -86,7 +88,7 @@ class Heap {
   std::unordered_map<size_t, std::vector<std::unique_ptr<Chunk>>> chunksBySize_;
 };
 
-extern Heap heap;
+extern Heap* heap;
 
 template <class T>
 void Heap::recordWrite(T** from, T* to) {
