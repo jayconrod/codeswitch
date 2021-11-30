@@ -17,7 +17,7 @@
 namespace codeswitch {
 
 Handle<Package> readPackageAsm(const std::filesystem::path& filename, std::istream& is);
-void writePackageAsm(std::ostream& os, const Package* package);
+void writePackageAsm(std::ostream& os, Package* package);
 
 /**
  * Tracks offsets within a function, used for assembling instructions that need

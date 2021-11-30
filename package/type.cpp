@@ -5,6 +5,7 @@
 
 #include "type.h"
 
+#include <functional>
 #include "common/common.h"
 
 namespace codeswitch {
@@ -20,6 +21,10 @@ word_t Type::size() const {
   }
   ABORT("unreachable");
   return ~0;
+}
+
+word_t Type::hash() const {
+  return std::hash<int>{}(kind_);
 }
 
 }  // namespace codeswitch

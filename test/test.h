@@ -19,6 +19,8 @@ class TestRunner;
 class TestRunner {
  public:
   bool Run();
+
+  std::string filter;
 };
 
 class Test {

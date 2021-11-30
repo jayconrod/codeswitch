@@ -20,8 +20,8 @@ static length_t typesSize(const List<Ptr<Type>>& types);
 void interpret(Handle<Package>& package, Handle<Function>& entry, std::ostream& out) {
   // TODO: allow the entry function to have parameters and return values.
   // There must be a way to pass values between native and interpreted code.
-  ASSERT(entry->returnTypes().length() == 0);
-  ASSERT(entry->paramTypes().length() == 0);
+  ASSERT(entry->returnTypes.empty());
+  ASSERT(entry->paramTypes.empty());
 
   // Create the stack. We'll keep sp and fp as local variables for speed,
   // but we need to save them back to s.sp and s.fp before doing anything
@@ -61,7 +61,7 @@ void interpret(Handle<Package>& package, Handle<Function>& entry, std::ostream& 
 
   // Set other registers.
   auto fn = *entry;
-  auto ip = &fn->insts().at(0);
+  auto ip = fn->insts.begin();
   auto pp = *package;
 
   while (true) {
@@ -98,11 +98,11 @@ void interpret(Handle<Package>& package, Handle<Function>& entry, std::ostream& 
         auto index = *reinterpret_cast<const uint32_t*>(ip + 1);
         auto frame = reinterpret_cast<Frame*>(sp) - 1;
         *frame = Frame{.fp = fp, .ip = ip->next(), .fn = fn, .pp = pp};
-        fn = pp->functions()[index].get();
+        fn = pp->functionByIndex(index);
         fp = frame;
         sp = reinterpret_cast<word_t*>(fp);
-        ip = &fn->insts()[0];
-        CHECK_STACK(fn->frameSize());
+        ip = fn->insts.begin();
+        CHECK_STACK(fn->frameSize);
         continue;
       }
 
@@ -192,8 +192,8 @@ void interpret(Handle<Package>& package, Handle<Function>& entry, std::ostream& 
         pp = fp->pp;
         auto callerfp = fp->fp;
         auto args = reinterpret_cast<word_t*>(fp + 1);
-        auto argWords = typesSize(fn->paramTypes()) / kWordSize;
-        auto returnWords = typesSize(fn->returnTypes()) / kWordSize;
+        auto argWords = typesSize(fn->paramTypes) / kWordSize;
+        auto returnWords = typesSize(fn->returnTypes) / kWordSize;
         auto src = sp + returnWords;
         auto dst = args + argWords;
         sp = dst - returnWords;

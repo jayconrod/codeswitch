@@ -40,6 +40,7 @@ class List {
   void append(const S& elem);
   template <class S>
   void append(S* elems, length_t n);
+  void resize(length_t newLength);
   void reserve(length_t newCap);
 
   const T* begin() const { return const_cast<List<T>*>(this)->begin(); }
@@ -96,6 +97,15 @@ void List<T>::append(S* elems, length_t n) {
   for (length_t i = 0; i < n; i++) {
     data_[length_++] = elems[i];
   }
+}
+
+template <class T>
+void List<T>::resize(length_t newLength) {
+  for (length_t i = newLength; i < length_; i++) {
+    data_[i] = T();
+  }
+  reserve(newLength);
+  length_ = newLength;
 }
 
 template <class T>

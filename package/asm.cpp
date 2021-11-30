@@ -453,7 +453,7 @@ Handle<Package> PackageBuilder::build() {
   for (auto& f : file_.functions) {
     functions->append(*buildFunction(f));
   }
-  return handle(Package::make(*functions));
+  return handle(Package::make(**functions));
 }
 
 struct LabelInfo {
@@ -914,37 +914,37 @@ uint8_t* Assembler::addrOf(int32_t offset) {
   return nullptr;
 }
 
-static void writeFunction(std::ostream& os, const Package* package, const Function* function);
+static void writeFunction(std::ostream& os, Package* package, const Function* function);
 static void writeTypeList(std::ostream& os, const List<Ptr<Type>>& types);
 static void writeType(std::ostream& os, const Type* type);
 
-void writePackageAsm(std::ostream& os, const Package* package) {
+void writePackageAsm(std::ostream& os, Package* package) {
   auto sep = "";
-  for (auto& function : package->functions()) {
+  for (length_t i = 0, n = package->functionCount(); i < n; i++) {
     os << sep;
     sep = "\n\n";
-    writeFunction(os, package, function.get());
+    writeFunction(os, package, package->functionByIndex(i));
   }
 }
 
-void writeFunction(std::ostream& os, const Package* package, const Function* function) {
-  os << "function " << function->name();
-  writeTypeList(os, function->paramTypes());
-  if (!function->returnTypes().empty()) {
+void writeFunction(std::ostream& os, Package* package, const Function* function) {
+  os << "function " << function->name;
+  writeTypeList(os, function->paramTypes);
+  if (!function->returnTypes.empty()) {
     os << " -> ";
-    writeTypeList(os, function->returnTypes());
+    writeTypeList(os, function->returnTypes);
   }
   os << " {\n";
 
   std::unordered_map<int32_t, int32_t> labelIndices;
   int32_t labelIndex = 1;
-  auto insts = function->insts();
-  for (const Inst* inst = &*insts.begin(); inst < &*insts.end(); inst = inst->next()) {
+  for (auto begin = function->insts.begin(), inst = begin, end = function->insts.end(); inst < end;
+       inst = inst->next()) {
     switch (inst->op) {
       case Op::B:
       case Op::BIF: {
         auto delta = *reinterpret_cast<const int32_t*>(inst + 1);
-        auto instOffset = inst - &*insts.begin();
+        auto instOffset = inst - begin;
         auto labelOffset = instOffset + delta;
         labelIndices[labelOffset] = labelIndex++;
         break;
@@ -955,10 +955,11 @@ void writeFunction(std::ostream& os, const Package* package, const Function* fun
   }
 
   auto sep = "";
-  for (const Inst* inst = &*insts.begin(); inst < &*insts.end(); inst = inst->next()) {
+  for (auto begin = function->insts.begin(), inst = begin, end = function->insts.end(); inst < end;
+       inst = inst->next()) {
     os << sep;
     sep = "\n";
-    auto instOffset = inst - &insts[0];
+    auto instOffset = inst - begin;
     auto it = labelIndices.find(instOffset);
     if (it != labelIndices.end()) {
       os << "L" << it->second << ":\n";
@@ -970,7 +971,6 @@ void writeFunction(std::ostream& os, const Package* package, const Function* fun
       case Op::B:
       case Op::BIF: {
         auto delta = *reinterpret_cast<const int32_t*>(inst + 1);
-        auto instOffset = inst - &*insts.begin();
         auto labelOffset = instOffset + delta;
         os << " L" << labelIndices[labelOffset];
         break;
@@ -978,8 +978,8 @@ void writeFunction(std::ostream& os, const Package* package, const Function* fun
 
       case Op::CALL: {
         auto index = *reinterpret_cast<const int32_t*>(inst + 1);
-        auto callee = package->functions()[index].get();
-        os << " " << callee->name();
+        auto callee = package->functionByIndex(index);
+        os << " " << callee->name;
         break;
       }
 

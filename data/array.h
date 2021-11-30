@@ -53,7 +53,9 @@ class BoundArray {
  public:
   BoundArray() = default;
   BoundArray(Array<T>* array, length_t length) : array_(array), length_(length) {}
+  void init(Array<T>* array, length_t length);
 
+  bool isNull() const { return !array_; }
   length_t length() const { return length_; }
   const T& at(length_t i) const { return const_cast<BoundArray<T>*>(this)->at(i); }
   T& at(length_t i) { return (*this)[i]; }
@@ -72,6 +74,12 @@ class BoundArray {
   Ptr<Array<T>> array_;
   length_t length_ = 0;
 };
+
+template <class T>
+void BoundArray<T>::init(Array<T>* array, length_t length) {
+  array_ = array;
+  length_ = length;
+}
 
 template <class T>
 T& BoundArray<T>::operator[](length_t i) {

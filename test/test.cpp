@@ -12,20 +12,25 @@
 #include <vector>
 
 #include "common/common.h"
+#include "flag/flag.h"
 
-using std::cerr;
-using std::endl;
-using std::exception;
-using std::vector;
-
-int main() {
+int main(int argc, char* argv[]) {
+  codeswitch::FlagSet flags("test", "test [-run=testname]");
   codeswitch::TestRunner runner;
+  flags.stringFlag(&runner.filter, "run", "", "name of test to run (all tests are run by default)", false);
+  try {
+    flags.parse(argc - 1, argv + 1);
+  } catch (std::exception& ex) {
+    std::cerr << ex.what() << std::endl;
+    return 1;
+  }
+
   return runner.Run() ? 0 : 1;
 }
 
 namespace codeswitch {
 
-vector<TestCase> testCases;
+std::vector<TestCase> testCases;
 
 class TestFatal {};
 
@@ -34,11 +39,15 @@ bool TestRunner::Run() {
   abortBacktrace = true;
   bool passedAll = true;
   for (auto tc : testCases) {
+    if (!filter.empty() && filter != tc.name) {
+      continue;
+    }
+
     Test t(tc.name);
     try {
       tc.fn(t);
     } catch (TestFatal) {
-    } catch (exception& x) {
+    } catch (std::exception& x) {
       t.fatal(x.what());
     }
     if (!t.passed()) {
@@ -50,13 +59,13 @@ bool TestRunner::Run() {
 
 Test::~Test() {
   if (passed_) {
-    cerr << "PASS: " << name_ << endl;
+    std::cerr << "PASS: " << name_ << std::endl;
   }
 }
 
 void Test::error(const std::string& msg) {
   reportFail();
-  cerr << msg << endl;
+  std::cerr << msg << std::endl;
 }
 
 void Test::errorf(const char* fmt, ...) {
@@ -70,7 +79,7 @@ void Test::errorf(const char* fmt, ...) {
 
 void Test::fatal(const std::string& msg) {
   reportFail();
-  cerr << msg << endl;
+  std::cerr << msg << std::endl;
   throw TestFatal{};
 }
 
@@ -88,7 +97,7 @@ void Test::reportFail() {
     return;
   }
   passed_ = false;
-  cerr << "FAIL: " << name_ << endl;
+  std::cerr << "FAIL: " << name_ << std::endl;
 }
 
 TestCase::TestCase(const char* name, void (*fn)(Test& t)) : name(name), fn(fn) {
