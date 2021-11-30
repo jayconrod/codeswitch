@@ -9,6 +9,9 @@
 #include <cstddef>
 #include <cstdint>
 #include <exception>
+#include <limits>
+#include <stdexcept>
+#include <type_traits>
 
 namespace codeswitch {
 
@@ -65,6 +68,45 @@ constexpr inline word_t nextPowerOf2(word_t n) {
   }
   n++;
   return n;
+}
+
+template <class T>
+constexpr bool addWouldOverflow(T a, T b) {
+  if (std::is_unsigned<T>::value || (a > 0 && b > 0)) {
+    return std::numeric_limits<T>::max() - b < a;
+  }
+  if (a < 0 && b < 0) {
+    return std::numeric_limits<T>::min() - b > a;
+  }
+  return false;
+}
+
+template <class S, class T>
+S narrow(T t) {
+  auto s = static_cast<S>(t);
+  if (static_cast<T>(s) != t) {
+    throw std::domain_error("could not precisely cast integer to narrower type");
+  }
+  return s;
+}
+
+template <class T>
+T readBin(uint8_t** p) {
+  T v = *reinterpret_cast<T*>(*p);
+  *p += sizeof(T);
+  return v;
+}
+
+template <class T>
+void readBin(uint8_t** p, T* v) {
+  *v = *reinterpret_cast<T*>(*p);
+  *p += sizeof(T);
+}
+
+template <class T>
+void writeBin(uint8_t** p, T v) {
+  *reinterpret_cast<T*>(*p) = v;
+  *p += sizeof(T);
 }
 
 extern bool abortThrowException;

@@ -16,7 +16,7 @@ class Package;
 
 struct Frame {
   Frame* fp;
-  const Inst* ip;
+  Inst* ip;
   Function* fn;
   Package* pp;
 };

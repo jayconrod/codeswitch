@@ -12,15 +12,23 @@
 
 namespace codeswitch {
 
+template <class K>
+class HashRef {
+  static word_t hash(const K& key) { return key->hash(); }
+  static bool equal(const K& l, const K& r) { return *l == *r; }
+};
+
 template <class K, class V, class H>
 class Map {
  public:
   static Map* make();
 
+  bool empty() const { return length() == 0; }
   length_t length() const { return length_; }
   length_t cap() const { return cap_; }
   bool has(const K& key) const;
-  const V& get(const K& key) const;
+  const V& get(const K& key) const { return const_cast<Map<K, V, H>*>(this)->get(key); }
+  V& get(const K& key);
   void set(const K& key, const V& value);
 
  protected:
@@ -35,7 +43,8 @@ class Map {
   word_t mask() const { return cap_ - 1; }
   static word_t hash(const K& key);
   void resize(length_t newCap);
-  const Entry* find(const K& key, word_t h) const;
+  const Entry* find(const K& key, word_t h) const { return const_cast<Map<K, V, H>*>(this)->find(key, h); }
+  Entry* find(const K& key, word_t h);
   Entry* findOrAdd(const K& key, word_t h);
 
   Ptr<Array<Entry>> data_;
@@ -54,7 +63,7 @@ bool Map<K, V, H>::has(const K& key) const {
 }
 
 template <class K, class V, class H>
-const V& Map<K, V, H>::get(const K& key) const {
+V& Map<K, V, H>::get(const K& key) {
   auto e = this->find(key, hash(key));
   ASSERT(e != nullptr);
   return e->value;
@@ -92,7 +101,7 @@ void Map<K, V, H>::resize(length_t newCap) {
 }
 
 template <class K, class V, class H>
-const typename Map<K, V, H>::Entry* Map<K, V, H>::find(const K& key, word_t h) const {
+typename Map<K, V, H>::Entry* Map<K, V, H>::find(const K& key, word_t h) {
   if (length_ == 0) {
     return nullptr;
   }

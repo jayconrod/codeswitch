@@ -27,13 +27,18 @@ namespace codeswitch {
  */
 class String {
  public:
+  String() = default;
+  explicit String(BoundArray<const uint8_t>& data) : data_(data) {}
+  String(Array<const uint8_t>* array, length_t length) : data_(array, length) {}
   static String* make();
   static String* make(BoundArray<const uint8_t>& data);
   static String* make(Array<const uint8_t>* array, length_t length);
   static Handle<String> create(const char* s);
   static Handle<String> create(const std::string& s);
   static Handle<String> create(const std::string_view& s);
+  void init(Array<const uint8_t>* array, length_t length) { data_.init(array, length); }
 
+  bool isNull() const { return data_.isNull(); }
   length_t length() const { return data_.length(); }
   std::string_view view() const;
   const uint8_t* begin() const { return data_.begin(); }
@@ -54,10 +59,6 @@ class String {
 
  private:
   friend std::ostream& operator<<(std::ostream&, const String&);
-
-  String() = default;
-  explicit String(BoundArray<const uint8_t>& data) : data_(data) {}
-  String(Array<const uint8_t>* array, length_t length) : data_(array, length) {}
 
   BoundArray<const uint8_t> data_;
 };

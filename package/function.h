@@ -18,26 +18,20 @@ namespace codeswitch {
 
 class Function {
  public:
-  Function(const String& name, List<Ptr<Type>>& returnTypes, List<Ptr<Type>>& paramTypes, List<Inst>& insts,
+  Function() = default;
+  Function(const String& name, List<Ptr<Type>>& paramTypes, List<Ptr<Type>>& returnTypes, List<Inst>& insts,
            length_t frameSize) :
-      name_(name), returnTypes_(returnTypes), paramTypes_(paramTypes), insts_(insts), frameSize_(frameSize) {}
-  static Function* make(const String& name, List<Ptr<Type>>& returnTypes, List<Ptr<Type>>& paramTypes,
+      name(name), paramTypes(paramTypes), returnTypes(returnTypes), insts(insts), frameSize(frameSize) {}
+  static Function* make(const String& name, List<Ptr<Type>>& paramTypes, List<Ptr<Type>>& returnTypes,
                         List<Inst>& insts, length_t frameSize) {
-    return new (heap.allocate(sizeof(Function))) Function(name, returnTypes, paramTypes, insts, frameSize);
+    return new (heap.allocate(sizeof(Function))) Function(name, paramTypes, returnTypes, insts, frameSize);
   }
 
-  const String& name() const { return name_; }
-  const List<Ptr<Type>>& returnTypes() const { return returnTypes_; }
-  const List<Ptr<Type>>& paramTypes() const { return paramTypes_; }
-  const List<Inst>& insts() const { return insts_; }
-  length_t frameSize() const { return frameSize_; }
-
- private:
-  String name_;
-  List<Ptr<Type>> returnTypes_;
-  List<Ptr<Type>> paramTypes_;
-  List<Inst> insts_;
-  length_t frameSize_;
+  String name;
+  List<Ptr<Type>> paramTypes;
+  List<Ptr<Type>> returnTypes;
+  List<Inst> insts;
+  length_t frameSize = 0;
 };
 
 }  // namespace codeswitch

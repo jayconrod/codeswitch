@@ -19,6 +19,7 @@ class Type {
     INT64,
   };
 
+  Type() = default;
   explicit Type(Kind kind) : kind_(kind) {}
   static Type* make(Kind kind) { return new (heap.allocate(sizeof(Type))) Type(kind); }
 
@@ -26,9 +27,10 @@ class Type {
   word_t size() const;
   bool operator==(const Type& other) const;
   bool operator!=(const Type& other) const { return !(*this == other); }
+  word_t hash() const;
 
  private:
-  Kind kind_;
+  Kind kind_ = Kind::UNIT;
 };
 
 }  // namespace codeswitch

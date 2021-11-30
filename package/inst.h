@@ -84,7 +84,8 @@ class Inst {
 
   const char* mnemonic() const;
   inline word_t size() const;
-  inline const Inst* next() const;
+  const Inst* next() const { return const_cast<Inst*>(this)->next(); }
+  Inst* next() { return this + size(); }
 };
 
 static_assert(sizeof(Inst) == 1);
@@ -132,10 +133,6 @@ word_t Inst::size() const {
   }
   UNREACHABLE();
   return 0;
-}
-
-const Inst* Inst::next() const {
-  return this + size();
 }
 
 /**
