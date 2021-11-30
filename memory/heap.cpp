@@ -81,4 +81,12 @@ void Heap::collectGarbage() {
   // TODO: implement.
 }
 
+void Heap::gcLock() {
+  // TODO: implement.
+}
+
+void Heap::gcUnlock() {
+  // TODO: implement.
+}
+
 }  // namespace codeswitch

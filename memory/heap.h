@@ -78,6 +78,8 @@ class Heap {
 
   /** Reclaim memory used by blocks that are no longer reachable. */
   void collectGarbage();
+  void gcLock();
+  void gcUnlock();
 
  private:
   void addChunk();
