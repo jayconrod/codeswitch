@@ -16,18 +16,41 @@
 
 namespace codeswitch {
 
+class FlagError : public Error {
+ public:
+  FlagError(const std::string& name, const std::string& message) :
+      Error(strprintf("%s: %s\n\tRun with -help for usage.", name.c_str(), message.c_str())) {}
+};
+
 void FlagSet::varFlag(const std::string& name, std::function<void(const std::string&)> parse,
-                      const std::string& description, bool mandatory) {
+                      const std::string& description, FlagSet::Opt opt, FlagSet::HasValue hasValue) {
   auto it = std::lower_bound(flags_.begin(), flags_.end(), name, FlagSpec::less);
   ASSERT(it == flags_.end() || it->name != name);
-  flags_.insert(it, FlagSpec{name, parse, description, mandatory});
+  flags_.insert(it, FlagSpec{name, parse, description, opt, hasValue});
+}
+
+void FlagSet::boolFlag(bool* value, const std::string& name, bool defaultValue, const std::string& description,
+                       FlagSet::Opt opt) {
+  *value = defaultValue;
+  auto parse = [value, name](const std::string& arg) {
+    if (arg == "") {
+      *value = true;
+    } else if (arg == "true") {
+      *value = true;
+    } else if (arg == "false") {
+      *value = false;
+    } else {
+      throw FlagError(name, "invalid value: " + arg + " (must be true or false)");
+    }
+  };
+  varFlag(name, parse, description, opt, HasValue::IMPLICIT_VALUE);
 }
 
 void FlagSet::stringFlag(std::string* value, const std::string& name, const std::string& defaultValue,
-                         const std::string& description, bool mandatory) {
+                         const std::string& description, FlagSet::Opt opt) {
   *value = defaultValue;
   auto parse = [value](const std::string& arg) { *value = arg; };
-  varFlag(name, parse, description, mandatory);
+  varFlag(name, parse, description, opt, HasValue::EXPLICIT_VALUE);
 }
 
 size_t FlagSet::parse(int argc, char* argv[]) {
@@ -38,13 +61,8 @@ size_t FlagSet::parse(int argc, char* argv[]) {
   return parse(args);
 }
 
-class FlagError : public Error {
- public:
-  FlagError(const std::string& name, const std::string& message) :
-      Error(strprintf("%s: %s\n\tRun with -help for usage.", name.c_str(), message.c_str())) {}
-};
-
 size_t FlagSet::parse(const std::vector<std::string>& args) {
+  std::vector<bool> seen(flags_.size());
   for (size_t i = 0; i < args.size(); i++) {
     auto& arg = args[i];
     if (arg.size() < 2 || arg[0] != '-') {
@@ -67,11 +85,14 @@ size_t FlagSet::parse(const std::vector<std::string>& args) {
     if (it == flags_.end() || it->name != name) {
       throw FlagError(name, "no such flag");
     }
+    seen[it - flags_.begin()] = true;
     if (eq == std::string::npos) {
-      if (i + 1 >= args.size()) {
-        throw FlagError(name, "expected argument with flag");
+      if (it->hasValue == HasValue::EXPLICIT_VALUE) {
+        if (i + 1 >= args.size()) {
+          throw FlagError(name, "expected argument with flag");
+        }
+        value = args[++i];
       }
-      value = args[++i];
     }
     try {
       it->parse(value);
@@ -79,6 +100,13 @@ size_t FlagSet::parse(const std::vector<std::string>& args) {
       throw FlagError(name, ex.what());
     }
   }
+
+  for (size_t i = 0; i < flags_.size(); i++) {
+    if (flags_[i].opt == Opt::MANDATORY && !seen[i]) {
+      throw FlagError(flags_[i].name, "flag is mandatory and was not set");
+    }
+  }
+
   return args.size();
 }
 

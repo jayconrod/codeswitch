@@ -8,6 +8,7 @@
 
 #include <exception>
 #include <string>
+#include "str.h"
 
 namespace codeswitch {
 
@@ -21,6 +22,10 @@ class Error : public std::exception {
 };
 
 Error errorf(const char* fmt, ...);
+template <class... Args>
+Error errorstr(Args... args) {
+  return Error(buildString(args...));
+}
 
 }  // namespace codeswitch
 

@@ -925,6 +925,7 @@ void writePackageAsm(std::ostream& os, Package* package) {
     sep = "\n\n";
     writeFunction(os, package, package->functionByIndex(i));
   }
+  os << '\n';
 }
 
 void writeFunction(std::ostream& os, Package* package, const Function* function) {
@@ -1008,6 +1009,7 @@ void writeFunction(std::ostream& os, Package* package, const Function* function)
         break;
     }
   }
+  os << "\n}";
 }
 
 void writeTypeList(std::ostream& os, const List<Ptr<Type>>& types) {
