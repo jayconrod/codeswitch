@@ -82,7 +82,7 @@ class Assembler {
   void xor_();
 
  private:
-  void ensureSpace(length_t n);
+  void ensureSpace(size_t n);
   void op(Op op);
   void op1_8(Op op, uint8_t a);
   void op1_16(Op op, uint16_t a);
@@ -103,7 +103,7 @@ class Assembler {
   };
 
   std::deque<Fragment> fragments_;
-  length_t size_ = 0;
+  size_t size_ = 0;
 };
 
 }  // namespace codeswitch

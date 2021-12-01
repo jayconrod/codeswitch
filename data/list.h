@@ -27,21 +27,21 @@ class List {
  public:
   List() = default;
   static List* make();
-  static Handle<List> create(length_t cap);
+  static Handle<List> create(size_t cap);
 
-  const T& at(length_t i) const { return (*this)[i]; }
-  T& at(length_t i) { return (*this)[i]; }
-  const T& operator[](length_t i) const { return (*const_cast<List<T>*>(this))[i]; }
-  T& operator[](length_t i);
-  length_t length() const { return length_; }
-  length_t cap() const { return data_.length(); }
+  const T& at(size_t i) const { return (*this)[i]; }
+  T& at(size_t i) { return (*this)[i]; }
+  const T& operator[](size_t i) const { return (*const_cast<List<T>*>(this))[i]; }
+  T& operator[](size_t i);
+  size_t length() const { return length_; }
+  size_t cap() const { return data_.length(); }
   bool empty() const { return length() == 0; }
   template <class S>
   void append(const S& elem);
   template <class S>
-  void append(S* elems, length_t n);
-  void resize(length_t newLength);
-  void reserve(length_t newCap);
+  void append(S* elems, size_t n);
+  void resize(size_t newLength);
+  void reserve(size_t newCap);
 
   const T* begin() const { return const_cast<List<T>*>(this)->begin(); }
   T* begin() { return data_.begin(); }
@@ -49,15 +49,15 @@ class List {
   T* end() { return data_.begin() + length_; }
 
  private:
-  List(BoundArray<T>* array, length_t length);
-  void reserveMore(length_t more);
+  List(BoundArray<T>* array, size_t length);
+  void reserveMore(size_t more);
 
   BoundArray<T> data_;
-  length_t length_ = 0;
+  size_t length_ = 0;
 };
 
 template <class T>
-List<T>::List(BoundArray<T>* data, length_t cap) : data_(data), length_(length) {
+List<T>::List(BoundArray<T>* data, size_t cap) : data_(data), length_(length) {
   if (length_ > data->length_) {
     throw BoundsCheckError();
   }
@@ -69,7 +69,7 @@ List<T>* List<T>::make() {
 }
 
 template <class T>
-T& List<T>::operator[](length_t i) {
+T& List<T>::operator[](size_t i) {
   if (i >= length_) {
     throw BoundsCheckError();
   }
@@ -77,7 +77,7 @@ T& List<T>::operator[](length_t i) {
 }
 
 template <class T>
-Handle<List<T>> List<T>::create(length_t length) {
+Handle<List<T>> List<T>::create(size_t length) {
   auto list = handle(List<T>::make());
   list->reserve(length);
   return list;
@@ -92,16 +92,16 @@ void List<T>::append(const S& elem) {
 
 template <class T>
 template <class S>
-void List<T>::append(S* elems, length_t n) {
+void List<T>::append(S* elems, size_t n) {
   reserveMore(n);
-  for (length_t i = 0; i < n; i++) {
+  for (size_t i = 0; i < n; i++) {
     data_[length_++] = elems[i];
   }
 }
 
 template <class T>
-void List<T>::resize(length_t newLength) {
-  for (length_t i = newLength; i < length_; i++) {
+void List<T>::resize(size_t newLength) {
+  for (size_t i = newLength; i < length_; i++) {
     data_[i] = T();
   }
   reserve(newLength);
@@ -109,19 +109,19 @@ void List<T>::resize(length_t newLength) {
 }
 
 template <class T>
-void List<T>::reserve(length_t newCap) {
+void List<T>::reserve(size_t newCap) {
   if (newCap <= cap()) {
     return;
   }
   auto newArray = Array<T>::make(newCap);
-  for (length_t i = 0; i < length_; i++) {
+  for (size_t i = 0; i < length_; i++) {
     newArray->at(i) = data_[i];
   }
   data_.set(newArray, newCap);
 }
 
 template <class T>
-void List<T>::reserveMore(length_t more) {
+void List<T>::reserveMore(size_t more) {
   if (length() + more <= cap()) {
     return;
   }

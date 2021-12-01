@@ -29,23 +29,23 @@ class String {
  public:
   String() = default;
   explicit String(BoundArray<const uint8_t>& data) : data_(data) {}
-  String(Array<const uint8_t>* array, length_t length) : data_(array, length) {}
+  String(Array<const uint8_t>* array, size_t length) : data_(array, length) {}
   static String* make();
   static String* make(BoundArray<const uint8_t>& data);
-  static String* make(Array<const uint8_t>* array, length_t length);
+  static String* make(Array<const uint8_t>* array, size_t length);
   static Handle<String> create(const char* s);
   static Handle<String> create(const std::string& s);
   static Handle<String> create(const std::string_view& s);
-  void init(Array<const uint8_t>* array, length_t length) { data_.init(array, length); }
+  void init(Array<const uint8_t>* array, size_t length) { data_.init(array, length); }
 
   bool isNull() const { return data_.isNull(); }
-  length_t length() const { return data_.length(); }
+  size_t length() const { return data_.length(); }
   std::string_view view() const;
   std::string str() const;
   const uint8_t* begin() const { return data_.begin(); }
   const uint8_t* end() const { return data_.end(); }
 
-  void slice(length_t i, length_t j);
+  void slice(size_t i, size_t j);
 
   intptr_t compare(const String& r) const;
   intptr_t compare(const char* r) const;
@@ -66,7 +66,7 @@ class String {
 
 class HashString {
  public:
-  static word_t hash(const String& s);
+  static uintptr_t hash(const String& s);
   static bool equal(const String& l, const String& r) { return l.compare(r) == 0; }
 };
 

@@ -18,14 +18,14 @@ namespace filesystem = std::filesystem;
 namespace codeswitch {
 
 void* allocateChunk(size_t size, size_t alignment) {
-  // TODO: randomize the allocation address.
+  // TODO: randomize the allocation uintptr_t.
   int prot = PROT_READ | PROT_WRITE;
   int flags = MAP_PRIVATE | MAP_ANONYMOUS;
   void* basePtr = mmap(nullptr, size + alignment, prot, flags, -1, 0);
   if (basePtr == MAP_FAILED) {
     throw SystemAllocationError{errno};
   }
-  auto base = reinterpret_cast<address>(basePtr);
+  auto base = reinterpret_cast<uintptr_t>(basePtr);
   auto end = base + size + alignment;
   auto chunk = align(base, alignment);
   auto chunkEnd = chunk + size;
@@ -65,7 +65,7 @@ MappedFile::MappedFile(const filesystem::path& filename, MappedFile::Perm perm) 
   }
   if (static_cast<off_t>(static_cast<intptr_t>(st.st_size) != st.st_size)) {
     close(fd);
-    throw FileError(filename, "file is too large to be memory-mapped into a 32-bit address space");
+    throw FileError(filename, "file is too large to be memory-mapped into a 32-bit uintptr_t space");
   }
 
   off_t offset = 0;

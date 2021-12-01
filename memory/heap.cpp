@@ -51,11 +51,11 @@ void* Heap::allocate(size_t size) {
   return reinterpret_cast<void*>(block);
 }
 
-void Heap::recordWrite(address from, address to) {
+void Heap::recordWrite(uintptr_t from, uintptr_t to) {
   // TODO: implement.
 }
 
-void Heap::checkBound(address base, word_t offset) {
+void Heap::checkBound(uintptr_t base, uintptr_t offset) {
   auto block = blockContaining(base);
   auto size = blockSize(block);
   if (size <= offset) {
@@ -63,14 +63,14 @@ void Heap::checkBound(address base, word_t offset) {
   }
 }
 
-address Heap::blockContaining(address p) {
+uintptr_t Heap::blockContaining(uintptr_t p) {
   if (p == kZeroAllocAddress) {
     return kZeroAllocAddress;
   }
   return Chunk::fromAddress(p)->blockContaining(p);
 }
 
-word_t Heap::blockSize(address p) {
+uintptr_t Heap::blockSize(uintptr_t p) {
   if (p == kZeroAllocAddress) {
     return 0;
   }

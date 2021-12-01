@@ -23,12 +23,12 @@ String* String::make(BoundArray<const uint8_t>& data) {
   return new (heap->allocate(sizeof(String))) String(data);
 }
 
-String* String::make(Array<const uint8_t>* array, length_t length) {
+String* String::make(Array<const uint8_t>* array, size_t length) {
   return new (heap->allocate(sizeof(String))) String(array, length);
 }
 
 Handle<String> String::create(const char* s) {
-  length_t length = strlen(s);
+  size_t length = strlen(s);
   auto array = handle(Array<uint8_t>::make(length));
   std::copy_n(s, length, array->begin());
   return handle(String::make(reinterpret_cast<Array<const uint8_t>*>(*array), length));
@@ -54,7 +54,7 @@ std::string String::str() const {
   return std::string(reinterpret_cast<const char*>(data_.begin()), length());
 }
 
-void String::slice(length_t i, length_t j) {
+void String::slice(size_t i, size_t j) {
   data_.slice(i, j);
 }
 
@@ -72,7 +72,7 @@ intptr_t String::compare(const String& r) const {
 
 intptr_t String::compare(const char* r) const {
   auto l = data_.begin();
-  length_t i;
+  size_t i;
   for (i = 0; i < length() && r[i] != '\0'; i++) {
     auto lb = static_cast<intptr_t>(l[i]);
     auto rb = static_cast<intptr_t>(r[i]);
@@ -98,7 +98,7 @@ intptr_t String::compare(const std::string_view& s) const {
   return std::lexicographical_compare(data_.begin(), data_.end(), s.begin(), s.end());
 }
 
-word_t HashString::hash(const String& s) {
+uintptr_t HashString::hash(const String& s) {
   return std::hash<std::string_view>{}(s.view());
 }
 

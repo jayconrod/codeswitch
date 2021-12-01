@@ -10,13 +10,13 @@
 namespace codeswitch {
 
 TEST(ArrayBasic) {
-  for (length_t i = 0; i < 2; i++) {
+  for (size_t i = 0; i < 2; i++) {
     auto a = Array<int>::make(i);
-    for (length_t j = 0; j < i; j++) {
+    for (size_t j = 0; j < i; j++) {
       (*a)[j] = j + 1;
     }
     int sum = 0;
-    for (length_t j = 0; j < i; j++) {
+    for (size_t j = 0; j < i; j++) {
       sum += (*a)[j];
     }
     ASSERT_EQ(sum, static_cast<int>(i * (i + 1) / 2));

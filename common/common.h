@@ -15,47 +15,43 @@
 
 namespace codeswitch {
 
-typedef uintptr_t word_t;
-typedef uintptr_t address;
-typedef uintptr_t length_t;
+const uintptr_t KB = 1 << 10;
+const uintptr_t MB = 1 << 20;
+const uintptr_t GB = 1 << 30;
 
-const word_t KB = 1 << 10;
-const word_t MB = 1 << 20;
-const word_t GB = 1 << 30;
+const size_t kWordSize = sizeof(uintptr_t);
+const uintptr_t kBitsInWord = kWordSize * 8;
 
-const size_t kWordSize = sizeof(word_t);
-const word_t kBitsInWord = kWordSize * 8;
-
-constexpr inline word_t align(word_t n, word_t alignment) {
+constexpr inline uintptr_t align(uintptr_t n, uintptr_t alignment) {
   return (n + alignment - 1UL) & ~(alignment - 1UL);
 }
 
-constexpr inline word_t alignDown(word_t n, word_t alignment) {
+constexpr inline uintptr_t alignDown(uintptr_t n, uintptr_t alignment) {
   return n & ~(alignment - 1UL);
 }
 
-constexpr inline word_t isAligned(word_t n, word_t alignment) {
+constexpr inline uintptr_t isAligned(uintptr_t n, uintptr_t alignment) {
   return (n & (alignment - 1UL)) == 0;
 }
 
-inline bool bit(word_t n, word_t bit) {
+inline bool bit(uintptr_t n, uintptr_t bit) {
   return (n & (1UL << bit)) != 0;
 }
 
-inline word_t bitExtract(word_t n, word_t width, word_t shift) {
+inline uintptr_t bitExtract(uintptr_t n, uintptr_t width, uintptr_t shift) {
   return (n >> shift) & ((1UL << width) - 1UL);
 }
 
-inline word_t bitInsert(word_t n, word_t value, word_t width, word_t shift) {
-  word_t mask = ((1UL << width) - 1UL) << shift;
+inline uintptr_t bitInsert(uintptr_t n, uintptr_t value, uintptr_t width, uintptr_t shift) {
+  uintptr_t mask = ((1UL << width) - 1UL) << shift;
   return (n & ~mask) | ((value << shift) & mask);
 }
 
-constexpr inline bool isPowerOf2(word_t n) {
+constexpr inline bool isPowerOf2(uintptr_t n) {
   return n != 0 && (n & (n - 1)) == 0;
 }
 
-constexpr inline word_t nextPowerOf2(word_t n) {
+constexpr inline uintptr_t nextPowerOf2(uintptr_t n) {
   n += (n == 0);
   n--;
   n |= n >> 1;
@@ -149,7 +145,7 @@ void abort(const char* fileName, int lineNumber, const char* reason, ...);
   T(T&&) = delete;                 \
   T& operator=(T&&) = delete;
 
-const word_t kGarbageHandle = 0xDEADBEEFul;
+const uintptr_t kGarbageHandle = 0xDEADBEEFul;
 
 }  // namespace codeswitch
 

@@ -60,7 +60,7 @@ struct FileHeader {
   uint16_t sectionCount;
 };
 
-const word_t kFileHeaderSize = 8;
+const uintptr_t kFileHeaderSize = 8;
 
 enum class SectionKind : uint32_t { FUNCTION = 1, TYPE = 2, STRING = 3 };
 
@@ -72,7 +72,7 @@ struct SectionHeader {
   uint32_t entrySize;
 };
 
-const word_t kSectionHeaderSize = 28;
+const uintptr_t kSectionHeaderSize = 28;
 
 struct FunctionEntry {
   uint32_t nameIndex;
@@ -85,14 +85,14 @@ struct FunctionEntry {
   uint32_t frameSize;
 };
 
-const word_t kFunctionEntrySize = 44;
+const uintptr_t kFunctionEntrySize = 44;
 
 struct StringEntry {
   uint64_t offset;
   uint64_t size;
 };
 
-const word_t kStringEntrySize = 16;
+const uintptr_t kStringEntrySize = 16;
 
 class Package {
  public:
@@ -101,8 +101,8 @@ class Package {
     return new (heap->allocate(sizeof(Package))) Package(functions);
   }
 
-  length_t functionCount() const { return functions_.length(); }
-  Function* functionByIndex(length_t index);
+  size_t functionCount() const { return functions_.length(); }
+  Function* functionByIndex(size_t index);
   Function* functionByName(const String& name);
 
   static Handle<Package> readFromFile(const std::filesystem::path& filename);
@@ -117,9 +117,9 @@ class Package {
       typeSection_(typeSection),
       stringSection_(stringSection) {}
 
-  Function* functionByIndexLocked(length_t index);
+  Function* functionByIndexLocked(size_t index);
   Function* functionByNameLocked(const String& name);
-  String& stringByIndexLocked(length_t index);
+  String& stringByIndexLocked(size_t index);
   void readTypeList(List<Ptr<Type>>* types, uint32_t count, uint64_t offset);
   Type* readType(uint8_t** p, uint8_t* end);
   static void writeType(std::vector<uint8_t>* data, const Type* type);

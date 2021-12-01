@@ -16,7 +16,7 @@ namespace codeswitch {
  * and negative offsets fit within the function (in branches) in signed 32-bit
  * integers.
  */
-const length_t kMaxFunctionSize = 0x7FFFFFFF;
+const size_t kMaxFunctionSize = 0x7FFFFFFF;
 
 /**
  * Indicates the operation to be performed by an Inst. Each Inst starts with
@@ -83,14 +83,14 @@ class Inst {
   Op op;
 
   const char* mnemonic() const;
-  inline word_t size() const;
+  inline uintptr_t size() const;
   const Inst* next() const { return const_cast<Inst*>(this)->next(); }
   Inst* next() { return this + size(); }
 };
 
 static_assert(sizeof(Inst) == 1);
 
-word_t Inst::size() const {
+uintptr_t Inst::size() const {
   switch (op) {
     case Op::ADD:
     case Op::AND:

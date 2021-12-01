@@ -25,10 +25,10 @@ class Type {
   static Type* make(Kind kind) { return new (heap->allocate(sizeof(Type))) Type(kind); }
 
   Kind kind() const { return kind_; }
-  word_t size() const;
+  uintptr_t size() const;
   bool operator==(const Type& other) const;
   bool operator!=(const Type& other) const { return !(*this == other); }
-  word_t hash() const;
+  uintptr_t hash() const;
 
  private:
   friend std::ostream& operator<<(std::ostream&, const Type&);

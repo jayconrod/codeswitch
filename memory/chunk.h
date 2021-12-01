@@ -22,10 +22,10 @@ class VM;
 /**
  * Blocks are aligned to 8 bytes all architectures. We need a reasonably large
  * alignment so that the marking bitmap (which has one bit per possible block
- * start address) doesn't take up too much space, but not too large an alignment
+ * start uintptr_t) doesn't take up too much space, but not too large an alignment
  * to waste space.
  */
-const word_t kBlockAlignment = 8;
+const uintptr_t kBlockAlignment = 8;
 
 /**
  * The maximum block size is set so there isn't too much waste at the end of a
@@ -34,7 +34,7 @@ const word_t kBlockAlignment = 8;
  * TODO: support larger allocations in mmap'd blocks with their own pointer
  * maps.
  */
-const word_t kMaxBlockSize = 128 * KB;
+const uintptr_t kMaxBlockSize = 128 * KB;
 
 /**
  * A Chunk is an aligned region of memory allocated from the kernel using mmap
@@ -49,18 +49,18 @@ class Chunk {
  public:
   NON_COPYABLE(Chunk)
 
-  static const word_t kSize = 1 * MB;
+  static const uintptr_t kSize = 1 * MB;
   void* operator new(size_t size);
   void operator delete(void* addr);
-  explicit Chunk(word_t blockSize);
+  explicit Chunk(uintptr_t blockSize);
 
   static Chunk* fromAddress(const void* p);
-  static Chunk* fromAddress(address addr);
+  static Chunk* fromAddress(uintptr_t addr);
 
-  word_t blockSize() const { return blockSize_; }
-  address blockContaining(address p);
+  uintptr_t blockSize() const { return blockSize_; }
+  uintptr_t blockContaining(uintptr_t p);
 
-  address allocate();
+  uintptr_t allocate();
 
  private:
   // Header section. Make sure kHeaderSize matches.
@@ -72,21 +72,21 @@ class Chunk {
    * blockSize_ is the size in bytes of each block. Must be a multiple of
    * kBlockAlignment.
    */
-  word_t blockSize_;
+  uintptr_t blockSize_;
 
   /**
    * free_ points to the head of a singly linked list of blocks in this chunk
    * freed by the garbage collector.
    */
-  address free_;
+  uintptr_t free_;
 
   /**
    * nextFree_ points to the first block in the free space at the end of
    * the chunk.
    */
-  address nextFree_;
+  uintptr_t nextFree_;
 
-  static const word_t kHeaderSize = sizeof(mu_) + sizeof(blockSize_) + sizeof(free_) + sizeof(nextFree_);
+  static const uintptr_t kHeaderSize = sizeof(mu_) + sizeof(blockSize_) + sizeof(free_) + sizeof(nextFree_);
 
   uint8_t pad_[kSize - kHeaderSize];
 
@@ -100,35 +100,35 @@ class Chunk {
   //
   // The data section follows the marking bitmap. It does not contain any
   // heap metadata.
-  static const word_t kDataOffset = 16 * KB;
-  static const word_t kBitmapOffset = align(kHeaderSize, kWordSize);
-  static const word_t kBitmapCount = (kDataOffset - kBitmapOffset) * 8;
-  static const word_t kDataSize = kBitmapCount / 2 * kBlockAlignment;
-  static const word_t kDataEndOffset = kDataOffset + kDataSize;
+  static const uintptr_t kDataOffset = 16 * KB;
+  static const uintptr_t kBitmapOffset = align(kHeaderSize, kWordSize);
+  static const uintptr_t kBitmapCount = (kDataOffset - kBitmapOffset) * 8;
+  static const uintptr_t kDataSize = kBitmapCount / 2 * kBlockAlignment;
+  static const uintptr_t kDataEndOffset = kDataOffset + kDataSize;
 };
 
 static_assert(sizeof(Chunk) == Chunk::kSize, "Chunk does not have expected size");
 
 inline Chunk* Chunk::fromAddress(const void* p) {
-  return fromAddress(reinterpret_cast<address>(p));
+  return fromAddress(reinterpret_cast<uintptr_t>(p));
 }
 
-inline Chunk* Chunk::fromAddress(address addr) {
+inline Chunk* Chunk::fromAddress(uintptr_t addr) {
   return reinterpret_cast<Chunk*>(addr & ~(kSize - 1));
 }
 
-inline address Chunk::blockContaining(address p) {
-  auto base = reinterpret_cast<address>(this) + kDataOffset;
+inline uintptr_t Chunk::blockContaining(uintptr_t p) {
+  auto base = reinterpret_cast<uintptr_t>(this) + kDataOffset;
   auto offset = p - base;
   return base + (offset / blockSize_ * blockSize_);
 }
 
 /** Attempts to allocate a free block. Returns 0 if no blocks are free. */
-inline address Chunk::allocate() {
+inline uintptr_t Chunk::allocate() {
   std::lock_guard<std::mutex> lock(mu_);
   if (free_ != 0) {
     auto block = free_;
-    auto next = reinterpret_cast<address*>(free_);
+    auto next = reinterpret_cast<uintptr_t*>(free_);
     free_ = *next;
     *next = 0;
     return block;
@@ -137,7 +137,7 @@ inline address Chunk::allocate() {
   if (nextFree_ != 0) {
     auto block = nextFree_;
     auto next = nextFree_ + blockSize_;
-    if (next - reinterpret_cast<address>(this) >= kDataEndOffset) {
+    if (next - reinterpret_cast<uintptr_t>(this) >= kDataEndOffset) {
       next = 0;
     }
     nextFree_ = next;

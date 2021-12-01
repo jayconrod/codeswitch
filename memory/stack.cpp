@@ -8,10 +8,10 @@
 namespace codeswitch {
 
 // TODO: dynamic stack size.
-const length_t kStackSize = 4096;
+const size_t kStackSize = 4096;
 
 Stack::Stack() {
-  limit_ = reinterpret_cast<address>(new uint8_t[kStackSize]);
+  limit_ = reinterpret_cast<uintptr_t>(new uint8_t[kStackSize]);
   start_ = limit_ + kStackSize;
   sp = start_;
   fp = start_;

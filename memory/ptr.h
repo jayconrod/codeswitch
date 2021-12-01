@@ -18,7 +18,7 @@ namespace codeswitch {
  * as a value, since it doesn't make sense to record a write to the C++ stack.
  */
 template <class T>
-class alignas(word_t) Ptr {
+class alignas(uintptr_t) Ptr {
  public:
   Ptr() : p_(nullptr) {}
   template <class S>
@@ -75,7 +75,7 @@ class alignas(word_t) Ptr {
 template <class T>
 class PtrHash {
  public:
-  static word_t hash(const Ptr<T>& p) { return std::hash(reinterpret_cast<uintptr_t>(p.get())); }
+  static uintptr_t hash(const Ptr<T>& p) { return std::hash(reinterpret_cast<uintptr_t>(p.get())); }
   static bool equal(const Ptr<T>& l, const Ptr<T>& r) { return l == r; }
 };
 

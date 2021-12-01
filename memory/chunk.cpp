@@ -18,10 +18,10 @@ void Chunk::operator delete(void* addr) {
   freeChunk(addr, sizeof(Chunk));
 }
 
-Chunk::Chunk(word_t blockSize) :
+Chunk::Chunk(uintptr_t blockSize) :
   blockSize_(blockSize),
   free_(0),
-  nextFree_(reinterpret_cast<address>(this) + kDataOffset) {
+  nextFree_(reinterpret_cast<uintptr_t>(this) + kDataOffset) {
   ASSERT(isAligned(blockSize, kBlockAlignment));
 }
 

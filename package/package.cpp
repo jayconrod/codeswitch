@@ -20,7 +20,7 @@ namespace filesystem = std::filesystem;
 
 namespace codeswitch {
 
-Function* Package::functionByIndex(length_t index) {
+Function* Package::functionByIndex(size_t index) {
   std::lock_guard<std::mutex> lock(mu_);
   return functionByIndexLocked(index);
 }
@@ -141,7 +141,7 @@ void Package::writeToFile(const filesystem::path& filename) {
   };
   std::vector<FunctionTypeLocation> typeOffsets(functions_.length());
   std::vector<uint8_t> typeData;
-  for (length_t i = 0, n = functions_.length(); i < n; i++) {
+  for (size_t i = 0, n = functions_.length(); i < n; i++) {
     auto& f = functions_[i];
     typeOffsets[i].paramTypeOffset = typeData.size();
     for (auto& t : f->paramTypes) {
@@ -205,7 +205,7 @@ void Package::writeToFile(const filesystem::path& filename) {
   }
 
   // Write function section.
-  for (length_t i = 0, n = functions_.length(); i < n; i++) {
+  for (size_t i = 0, n = functions_.length(); i < n; i++) {
     auto& f = functions_[i];
     FunctionEntry fe{
         .nameIndex = stringIndex->get(f->name),
@@ -255,7 +255,7 @@ void Package::validate() {
   }
 }
 
-Function* Package::functionByIndexLocked(length_t index) {
+Function* Package::functionByIndexLocked(size_t index) {
   if (functions_[index]) {
     return functions_[index].get();
   }
@@ -288,14 +288,14 @@ Function* Package::functionByNameLocked(const String& name) {
     return functionsByName_.get(name).get();
   }
 
-  for (length_t i = 0, n = functions_.length(); i < n; i++) {
+  for (size_t i = 0, n = functions_.length(); i < n; i++) {
     auto function = functionByIndex(i);
     functionsByName_.set(function->name, function);
   }
   return functionsByName_.get(name).get();
 }
 
-String& Package::stringByIndexLocked(length_t index) {
+String& Package::stringByIndexLocked(size_t index) {
   if (!strings_[index].isNull()) {
     return strings_[index];
   }
@@ -323,7 +323,7 @@ void Package::readTypeList(List<Ptr<Type>>* types, uint32_t count, uint64_t offs
   auto p = file_.data + typeSection_.offset + typeSection_.entryCount * typeSection_.entrySize + offset;
   auto end = file_.data + typeSection_.offset + typeSection_.size;
   types->resize(count);
-  for (length_t i = 0; i < count; i++) {
+  for (size_t i = 0; i < count; i++) {
     types->at(i) = readType(&p, end);
   }
 }
@@ -348,7 +348,7 @@ void Package::writeType(std::vector<uint8_t>* data, const Type* type) {
 }
 
 void Package::populateLocked() {
-  for (length_t i = 0, n = functions_.length(); i < n; i++) {
+  for (size_t i = 0, n = functions_.length(); i < n; i++) {
     functionByIndexLocked(i);
   }
 }

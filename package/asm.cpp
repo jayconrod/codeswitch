@@ -474,7 +474,7 @@ Handle<Function> PackageBuilder::buildFunction(const AsmFunction& function) {
 
   Assembler a;
   std::unordered_map<std::string_view, LabelInfo> labels;
-  length_t frameSize = 0;  // TODO: compute the actual frame size.
+  size_t frameSize = 0;  // TODO: compute the actual frame size.
   for (auto& inst : function.insts) {
     if (inst.label.kind == TokenKind::IDENT) {
       auto name = text(inst.label);
@@ -845,7 +845,7 @@ void Assembler::xor_() {
   op(Op::XOR);
 }
 
-void Assembler::ensureSpace(length_t n) {
+void Assembler::ensureSpace(size_t n) {
   if (size_ + n > kMaxFunctionSize) {
     throw Error("maximum function size exceeded");
   }
@@ -901,7 +901,7 @@ void Assembler::op1_label(Op op, Label* label) {
 }
 
 uint8_t* Assembler::addrOf(int32_t offset) {
-  ASSERT(0 <= offset && static_cast<length_t>(offset) < size_);
+  ASSERT(0 <= offset && static_cast<size_t>(offset) < size_);
   int32_t fragOffset = 0;
   for (auto& f : fragments_) {
     auto p = f.begin + offset - fragOffset;
@@ -920,7 +920,7 @@ static void writeType(std::ostream& os, const Type* type);
 
 void writePackageAsm(std::ostream& os, Package* package) {
   auto sep = "";
-  for (length_t i = 0, n = package->functionCount(); i < n; i++) {
+  for (size_t i = 0, n = package->functionCount(); i < n; i++) {
     os << sep;
     sep = "\n\n";
     writeFunction(os, package, package->functionByIndex(i));

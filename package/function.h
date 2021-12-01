@@ -22,10 +22,10 @@ class Function {
  public:
   Function() = default;
   Function(const String& name, List<Ptr<Type>>& paramTypes, List<Ptr<Type>>& returnTypes, List<Inst>& insts,
-           length_t frameSize) :
+           size_t frameSize) :
       name(name), paramTypes(paramTypes), returnTypes(returnTypes), insts(insts), frameSize(frameSize) {}
   static Function* make(const String& name, List<Ptr<Type>>& paramTypes, List<Ptr<Type>>& returnTypes,
-                        List<Inst>& insts, length_t frameSize) {
+                        List<Inst>& insts, size_t frameSize) {
     return new (heap->allocate(sizeof(Function))) Function(name, paramTypes, returnTypes, insts, frameSize);
   }
 
@@ -35,7 +35,7 @@ class Function {
   List<Ptr<Type>> paramTypes;
   List<Ptr<Type>> returnTypes;
   List<Inst> insts;
-  length_t frameSize = 0;
+  size_t frameSize = 0;
 };
 
 }  // namespace codeswitch

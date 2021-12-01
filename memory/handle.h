@@ -53,18 +53,18 @@ Handle<T> handle(T* block) {
  * HandleStorage tracks all live handles.
  *
  * Each handle is given a word-sized slot. When allocated, a slot contains a
- * pointer to the tracked block. When free, a slot contains the address of
+ * pointer to the tracked block. When free, a slot contains the uintptr_t of
  * another slot on the free list with the low bit set.
  */
 class HandleStorage {
  public:
-  address allocSlot();
-  void freeSlot(address slot);
+  uintptr_t allocSlot();
+  void freeSlot(uintptr_t slot);
 
  private:
   std::mutex mu_;
-  std::deque<address> slots_;
-  address free_ = 0;
+  std::deque<uintptr_t> slots_;
+  uintptr_t free_ = 0;
 };
 
 extern HandleStorage handleStorage;
@@ -90,7 +90,7 @@ Handle<T>::Handle(Handle<T>&& handle) : slot_(handle.slot_) {
 template <class T>
 Handle<T>::~Handle() {
   if (slot_ != nullptr) {
-    handleStorage.freeSlot(reinterpret_cast<address>(slot_));
+    handleStorage.freeSlot(reinterpret_cast<uintptr_t>(slot_));
   }
 }
 
@@ -98,7 +98,7 @@ template <class T>
 Handle<T>& Handle<T>::operator=(const Handle<T>& handle) {
   if (handle.slot_ == nullptr) {
     if (slot_ != nullptr) {
-      handleStorage.freeSlot(reinterpret_cast<address>(slot_));
+      handleStorage.freeSlot(reinterpret_cast<uintptr_t>(slot_));
       slot_ = nullptr;
     }
   } else {
@@ -113,7 +113,7 @@ Handle<T>& Handle<T>::operator=(const Handle<T>& handle) {
 template <class T>
 Handle<T>& Handle<T>::operator=(Handle<T>&& handle) {
   if (slot_ != nullptr) {
-    handleStorage.freeSlot(reinterpret_cast<address>(slot_));
+    handleStorage.freeSlot(reinterpret_cast<uintptr_t>(slot_));
   }
   slot_ = handle.slot_;
   handle.slot_ = nullptr;
@@ -123,7 +123,7 @@ Handle<T>& Handle<T>::operator=(Handle<T>&& handle) {
 template <class T>
 void Handle<T>::reset() {
   if (slot_ != nullptr) {
-    handleStorage.freeSlot(reinterpret_cast<address>(slot_));
+    handleStorage.freeSlot(reinterpret_cast<uintptr_t>(slot_));
   }
   slot_ = nullptr;
 }
