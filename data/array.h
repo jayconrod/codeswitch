@@ -40,7 +40,7 @@ class Array {
 
 template <class T>
 Array<T>* Array<T>::make(length_t length) {
-  return new (heap.allocate(length * sizeof(T))) Array<T>;
+  return new (heap->allocate(length * sizeof(T))) Array<T>;
 }
 
 template <class T>

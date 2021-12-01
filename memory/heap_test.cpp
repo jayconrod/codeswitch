@@ -13,7 +13,7 @@ TEST(Allocate) {
   word_t sizes[] = {1, 7, 31, 65, 256, 555, 2001, 62000};
   for (auto s : sizes) {
     try {
-      auto addr = heap.allocate(s);
+      auto addr = heap->allocate(s);
       ASSERT_TRUE(addr != nullptr);
     } catch (AllocationError& err) {
       t.errorf("error allocating size %d", static_cast<int>(s));

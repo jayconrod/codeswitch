@@ -31,9 +31,11 @@ TEST(AssembleDisassemble) {
     }
     std::ifstream file(filename);
     auto package1 = readPackageAsm(filename, file);
+    package1->validate();
     std::stringstream dis;
     writePackageAsm(dis, *package1);
     auto package2 = readPackageAsm(filename, dis);
+    package2->validate();
     checkPackagesEqual(t, package1, package2);
   }
 }
@@ -50,10 +52,12 @@ TEST(SerializeDeserialize) {
     }
     std::ifstream file(filename);
     auto package1 = readPackageAsm(filename, file);
+    package1->validate();
     TempFile tmp(filename.stem().string() + "-*.cswp");
     package1->writeToFile(tmp.filename);
     std::ifstream tmpFile(tmp.filename);
     auto package2 = Package::readFromFile(tmp.filename);
+    package2->validate();
     checkPackagesEqual(t, package1, package2);
   }
 }

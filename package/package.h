@@ -6,6 +6,7 @@
 #ifndef package_package_h
 #define package_package_h
 
+#include "common/error.h"
 #include "data/list.h"
 #include "data/map.h"
 #include "data/string.h"
@@ -97,7 +98,7 @@ class Package {
  public:
   explicit Package(List<Ptr<Function>>& functions) : functions_(functions) {}
   static Package* make(List<Ptr<Function>>& functions) {
-    return new (heap.allocate(sizeof(Package))) Package(functions);
+    return new (heap->allocate(sizeof(Package))) Package(functions);
   }
 
   length_t functionCount() const { return functions_.length(); }
@@ -106,6 +107,8 @@ class Package {
 
   static Handle<Package> readFromFile(const std::filesystem::path& filename);
   void writeToFile(const std::filesystem::path& filename);
+
+  void validate();
 
  private:
   Package(MappedFile&& file, SectionHeader functionSection, SectionHeader typeSection, SectionHeader stringSection) :
@@ -137,10 +140,22 @@ class Package {
   List<Ptr<Function>> functions_;
   List<Ptr<Type>> types_;
   List<String> strings_;
+
   Map<String, Ptr<Function>, HashString> functionsByName_;
 
   MappedFile file_;
   SectionHeader functionSection_, typeSection_, stringSection_;
+};
+
+class ValidateError : public Error {
+ public:
+  ValidateError(const std::filesystem::path& filename, const std::string& defName, const std::string& message);
+
+  virtual const char* what() const noexcept override;
+
+  std::filesystem::path filename;
+  std::string defName;
+  std::string message;
 };
 
 }  // namespace codeswitch

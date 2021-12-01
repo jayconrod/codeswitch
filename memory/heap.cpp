@@ -17,7 +17,7 @@ namespace codeswitch {
  * in different security contexts in the same process, so we just design around
  * having one heap.
  */
-Heap heap;
+Heap* heap;
 
 void* Heap::allocate(size_t size) {
   // Align the requested size.
@@ -78,6 +78,14 @@ word_t Heap::blockSize(address p) {
 }
 
 void Heap::collectGarbage() {
+  // TODO: implement.
+}
+
+void Heap::gcLock() {
+  // TODO: implement.
+}
+
+void Heap::gcUnlock() {
   // TODO: implement.
 }
 

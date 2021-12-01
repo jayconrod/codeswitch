@@ -103,7 +103,7 @@ Handle<Package> Package::readFromFile(const filesystem::path& filename) {
     throw FileError(filename, "unexpected space at end of file");
   }
 
-  auto package = handle(new (heap.allocate(sizeof(Package)))
+  auto package = handle(new (heap->allocate(sizeof(Package)))
                             Package(std::move(file), functionSection, typeSection, stringSection));
   package->functions_.resize(functionSection.entryCount);
   package->types_.resize(typeSection.entryCount);
@@ -233,6 +233,28 @@ void Package::writeToFile(const filesystem::path& filename) {
   p = std::copy(stringData.begin(), stringData.end(), p);
 }
 
+/**
+ * Checks that a package in memory satisfies all invariants expected.
+ * validate completely loads the package from a binary file (if there is one),
+ * so it's not normally called when loading a package into memory. However,
+ * packages should be validated at least once (for example, at install time)
+ * before being interpreted.
+ */
+void Package::validate() {
+  std::lock_guard lock(mu_);
+  populateLocked();
+  auto p = handle(this);
+
+  try {
+    for (auto& f : functions_) {
+      f->validate(p);
+    }
+  } catch (ValidateError& err) {
+    err.filename = filename_;
+    throw err;
+  }
+}
+
 Function* Package::functionByIndexLocked(length_t index) {
   if (functions_[index]) {
     return functions_[index].get();
@@ -241,7 +263,7 @@ Function* Package::functionByIndexLocked(length_t index) {
   FunctionEntry entry;
   readFunctionEntry(&p, &entry);
 
-  auto function = new (heap.allocate(sizeof(Function))) Function;
+  auto function = new (heap->allocate(sizeof(Function))) Function;
   functions_[index] = function;
   function->name = stringByIndexLocked(entry.nameIndex);
   readTypeList(&function->paramTypes, entry.paramTypeCount, entry.paramTypeOffset);
@@ -249,12 +271,12 @@ Function* Package::functionByIndexLocked(length_t index) {
   auto instBegin = reinterpret_cast<Inst*>(file_.data + functionSection_.offset +
                                            functionSection_.entryCount * functionSection_.entrySize + entry.instOffset);
   if (addWouldOverflow(reinterpret_cast<uintptr_t>(instBegin), static_cast<uintptr_t>(entry.instSize))) {
-    throw errorf("%s: for function %d, overflow computing end of instructions", filename_.c_str(), index);
+    throw errorstr(filename_, ": for function ", index, ", overflow computing end of instructions");
   }
   auto instEnd = instBegin + entry.instSize;
   auto functionSectionEnd = reinterpret_cast<Inst*>(file_.data + functionSection_.offset + functionSection_.size);
   if (instEnd > functionSectionEnd) {
-    throw errorf("%s: for function %d, end of instructions outside function section", filename_.c_str(), index);
+    throw errorstr(filename_, ": for function ", index, ", end of instructions outside function section");
   }
   function->insts.resize(entry.instSize);
   std::copy(instBegin, instBegin + entry.instSize, function->insts.begin());
@@ -284,12 +306,12 @@ String& Package::stringByIndexLocked(length_t index) {
   auto dataBegin =
       file_.data + stringSection_.offset + stringSection_.entryCount * stringSection_.entrySize + entry.offset;
   if (addWouldOverflow(reinterpret_cast<uintptr_t>(dataBegin), static_cast<uintptr_t>(entry.size))) {
-    throw errorf("%s: for string %d, overflow computing end of string", filename_.c_str(), index);
+    throw errorstr(filename_, ": for string ", index, ", overflow computing end of string");
   }
   auto dataEnd = dataBegin + entry.size;
   auto stringSectionEnd = file_.data + stringSection_.offset + stringSection_.size;
   if (dataEnd > stringSectionEnd) {
-    throw errorf("%s: for function %d, end of string outside string section", filename_.c_str(), index);
+    throw errorstr(filename_, ": for function ", index, ", end of string outside string section");
   }
   auto data = Array<uint8_t>::make(entry.size);
   std::copy(dataBegin, dataEnd, data->begin());
@@ -308,7 +330,7 @@ void Package::readTypeList(List<Ptr<Type>>* types, uint32_t count, uint64_t offs
 
 Type* Package::readType(uint8_t** p, uint8_t* end) {
   if (*p >= end) {
-    throw errorf("%s: type outside of type section", file_.filename.c_str());
+    throw errorstr(file_.filename, ": type outside of type section");
   }
   auto kind = static_cast<Type::Kind>(readBin<uint8_t>(p));
   switch (kind) {
@@ -317,7 +339,7 @@ Type* Package::readType(uint8_t** p, uint8_t* end) {
     case Type::INT64:
       return Type::make(kind);
     default:
-      throw errorf("%s: unknown type kind", file_.filename.c_str());
+      throw errorstr(file_.filename, ": unknown type kind");
   }
 }
 
@@ -393,6 +415,24 @@ void Package::readStringEntry(uint8_t** p, StringEntry* e) {
 void Package::writeStringEntry(uint8_t** p, StringEntry e) {
   writeBin(p, e.offset);
   writeBin(p, e.size);
+}
+
+ValidateError::ValidateError(const std::filesystem::path& filename, const std::string& defName,
+                             const std::string& message) :
+    Error(""), filename(filename), defName(defName), message(message) {
+  std::stringstream buf;
+  if (!filename.empty()) {
+    buf << filename << ": ";
+  }
+  if (!defName.empty()) {
+    buf << defName << ": ";
+  }
+  buf << message;
+  what_ = buf.str();
+}
+
+const char* ValidateError::what() const noexcept {
+  return what_.c_str();
 }
 
 }  // namespace codeswitch
