@@ -15,7 +15,7 @@
 
 namespace codeswitch {
 
-static length_t typesSize(const List<Ptr<Type>>& types);
+static size_t typesSize(const List<Ptr<Type>>& types);
 
 void interpret(Handle<Package>& package, Handle<Function>& entry, std::ostream& out) {
   // TODO: allow the entry function to have parameters and return values.
@@ -28,13 +28,13 @@ void interpret(Handle<Package>& package, Handle<Function>& entry, std::ostream& 
   // outside this function.
   Stack s;
   auto fp = reinterpret_cast<Frame*>(s.fp) - 1;
-  auto sp = reinterpret_cast<word_t*>(fp);
+  auto sp = reinterpret_cast<uintptr_t*>(fp);
 
 #define CHECK_STACK(size)                                   \
   do {                                                      \
-    if (reinterpret_cast<address>(sp) - size < s.limit()) { \
-      s.sp = reinterpret_cast<address>(sp);                 \
-      s.fp = reinterpret_cast<address>(fp);                 \
+    if (reinterpret_cast<uintptr_t>(sp) - size < s.limit()) { \
+      s.sp = reinterpret_cast<uintptr_t>(sp);                 \
+      s.fp = reinterpret_cast<uintptr_t>(fp);                 \
       s.check(size);                                        \
     }                                                       \
   } while (false)
@@ -100,7 +100,7 @@ void interpret(Handle<Package>& package, Handle<Function>& entry, std::ostream& 
         *frame = Frame{.fp = fp, .ip = ip->next(), .fn = fn, .pp = pp};
         fn = pp->functionByIndex(index);
         fp = frame;
-        sp = reinterpret_cast<word_t*>(fp);
+        sp = reinterpret_cast<uintptr_t*>(fp);
         ip = fn->insts.begin();
         CHECK_STACK(fn->frameSize);
         continue;
@@ -127,7 +127,7 @@ void interpret(Handle<Package>& package, Handle<Function>& entry, std::ostream& 
         break;
 
       case Op::INT64: {
-        auto n = *reinterpret_cast<const word_t*>(ip + 1);
+        auto n = *reinterpret_cast<const uintptr_t*>(ip + 1);
         PUSH(n);
         break;
       }
@@ -138,7 +138,7 @@ void interpret(Handle<Package>& package, Handle<Function>& entry, std::ostream& 
 
       case Op::LOADARG: {
         auto i = *reinterpret_cast<const uint16_t*>(ip + 1);
-        auto ap = reinterpret_cast<word_t*>(fp + 1);
+        auto ap = reinterpret_cast<uintptr_t*>(fp + 1);
         auto x = ap[i];
         PUSH(x);
         break;
@@ -146,7 +146,7 @@ void interpret(Handle<Package>& package, Handle<Function>& entry, std::ostream& 
 
       case Op::LOADLOCAL: {
         auto i = *reinterpret_cast<const int16_t*>(ip + 1);
-        auto lp = reinterpret_cast<word_t*>(fp) - 1;
+        auto lp = reinterpret_cast<uintptr_t*>(fp) - 1;
         auto x = lp[-i];
         PUSH(x);
         break;
@@ -191,7 +191,7 @@ void interpret(Handle<Package>& package, Handle<Function>& entry, std::ostream& 
         auto caller = fp->fn;
         pp = fp->pp;
         auto callerfp = fp->fp;
-        auto args = reinterpret_cast<word_t*>(fp + 1);
+        auto args = reinterpret_cast<uintptr_t*>(fp + 1);
         auto argWords = typesSize(fn->paramTypes) / kWordSize;
         auto returnWords = typesSize(fn->returnTypes) / kWordSize;
         auto src = sp + returnWords;
@@ -215,7 +215,7 @@ void interpret(Handle<Package>& package, Handle<Function>& entry, std::ostream& 
       case Op::STOREARG: {
         auto i = *reinterpret_cast<const uint16_t*>(ip + 1);
         auto x = POP();
-        auto ap = reinterpret_cast<word_t*>(fp + 1);
+        auto ap = reinterpret_cast<uintptr_t*>(fp + 1);
         ap[i] = x;
         break;
       }
@@ -223,7 +223,7 @@ void interpret(Handle<Package>& package, Handle<Function>& entry, std::ostream& 
       case Op::STORELOCAL: {
         auto i = *reinterpret_cast<const int16_t*>(ip + 1);
         auto x = POP();
-        auto lp = reinterpret_cast<word_t*>(fp) - 1;
+        auto lp = reinterpret_cast<uintptr_t*>(fp) - 1;
         lp[-i] = x;
         break;
       }
@@ -272,8 +272,8 @@ void interpret(Handle<Package>& package, Handle<Function>& entry, std::ostream& 
 #undef CHECK_STACK
 }
 
-length_t typesSize(const List<Ptr<Type>>& types) {
-  length_t size = 0;
+size_t typesSize(const List<Ptr<Type>>& types) {
+  size_t size = 0;
   for (auto& type : types) {
     size += align(type->size(), kWordSize);
   }

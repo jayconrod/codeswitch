@@ -12,7 +12,7 @@ namespace codeswitch {
 
 class HashInt {
  public:
-  static word_t hash(int i) { return static_cast<word_t>(i) * 7919 + 6959; }
+  static uintptr_t hash(int i) { return static_cast<uintptr_t>(i) * 7919 + 6959; }
   static bool equal(int l, int r) { return l == r; }
 };
 
@@ -20,7 +20,7 @@ TEST(MapInt) {
   auto m = handle(Map<int, int, HashInt>::make());
   ASSERT_FALSE(m->has(0));
   ASSERT_FALSE(m->has(99));
-  ASSERT_EQ(m->length(), static_cast<length_t>(0));
+  ASSERT_EQ(m->length(), static_cast<size_t>(0));
   for (int i = 0; i < 100; i++) {
     auto key = i * 100;
     ASSERT_FALSE(m->has(key));
@@ -28,14 +28,14 @@ TEST(MapInt) {
     ASSERT_TRUE(m->has(key));
     ASSERT_EQ(m->get(key), i);
   }
-  ASSERT_EQ(m->length(), static_cast<length_t>(100));
+  ASSERT_EQ(m->length(), static_cast<size_t>(100));
 }
 
 #include <vector>
 
 TEST(MapString) {
   auto m = handle(Map<String, String, HashString>::make());
-  ASSERT_EQ(m->length(), static_cast<length_t>(0));
+  ASSERT_EQ(m->length(), static_cast<size_t>(0));
   std::vector<int> v;
   v.emplace_back(12);
 

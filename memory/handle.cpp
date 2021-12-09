@@ -13,22 +13,22 @@ namespace codeswitch {
 
 HandleStorage handleStorage;
 
-address HandleStorage::allocSlot() {
+uintptr_t HandleStorage::allocSlot() {
   std::lock_guard<std::mutex> lock(mu_);
   if (free_ != 0) {
     auto slot = free_;
-    auto next = *reinterpret_cast<address*>(free_) & ~static_cast<address>(1);
+    auto next = *reinterpret_cast<uintptr_t*>(free_) & ~static_cast<uintptr_t>(1);
     free_ = next;
-    *reinterpret_cast<address*>(slot) = 0;
+    *reinterpret_cast<uintptr_t*>(slot) = 0;
     return slot;
   }
   slots_.push_back(0);
-  return reinterpret_cast<address>(&slots_.back());
+  return reinterpret_cast<uintptr_t>(&slots_.back());
 }
 
-void HandleStorage::freeSlot(address slot) {
+void HandleStorage::freeSlot(uintptr_t slot) {
   std::lock_guard<std::mutex> lock(mu_);
-  *reinterpret_cast<address*>(slot) = free_ | 1;
+  *reinterpret_cast<uintptr_t*>(slot) = free_ | 1;
   free_ = slot;
 }
 

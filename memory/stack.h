@@ -27,9 +27,9 @@ class Stack {
   ~Stack();
   NON_COPYABLE(Stack)
 
-  address start() const { return start_; }
-  address limit() const { return limit_; }
-  inline void check(length_t n);
+  uintptr_t start() const { return start_; }
+  uintptr_t limit() const { return limit_; }
+  inline void check(size_t n);
 
   Frame* frame() const { return reinterpret_cast<Frame*>(fp); }
 
@@ -40,10 +40,10 @@ class Stack {
   template <class T>
   T& at(intptr_t i);
 
-  address sp, fp;
+  uintptr_t sp, fp;
 
  private:
-  address start_, limit_;
+  uintptr_t start_, limit_;
 };
 
 class StackOverflowError : public std::exception {
@@ -51,7 +51,7 @@ class StackOverflowError : public std::exception {
   virtual const char* what() const noexcept override { return "stack overflow"; }
 };
 
-void Stack::check(length_t n) {
+void Stack::check(size_t n) {
   auto top = sp - n;
   if (top < limit_ || top >= sp) {
     throw StackOverflowError();

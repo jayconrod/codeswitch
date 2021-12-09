@@ -64,7 +64,7 @@ TEST(SerializeDeserialize) {
 
 void checkPackagesEqual(Test& t, Handle<Package>& p1, Handle<Package>& p2) {
   ASSERT_EQ(p1->functionCount(), p2->functionCount());
-  for (length_t i = 0, n = p1->functionCount(); i < n; i++) {
+  for (size_t i = 0, n = p1->functionCount(); i < n; i++) {
     auto f1 = handle(p1->functionByIndex(i));
     auto f2 = handle(p2->functionByIndex(i));
     ASSERT_EQ(f1->name, f2->name);

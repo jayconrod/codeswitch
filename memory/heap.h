@@ -16,13 +16,13 @@
 namespace codeswitch {
 
 /**
- * We will never allocate blocks below this address. Lesser values can signal
+ * We will never allocate blocks below this uintptr_t. Lesser values can signal
  * failures or encoded values.
  */
-const address kMinAddress = 1 << 20;
+const uintptr_t kMinAddress = 1 << 20;
 
 /** Address returned when a 0-byte allocation is requested. */
-const address kZeroAllocAddress = kMinAddress;
+const uintptr_t kZeroAllocAddress = kMinAddress;
 
 /**
  * Thrown when memory can't be allocated from the heap. Has a flag that
@@ -38,7 +38,7 @@ class AllocationError : public std::exception {
 };
 
 /**
- * Thrown when an address is accessed outside of the block it was expected to
+ * Thrown when an uintptr_t is accessed outside of the block it was expected to
  * be in. For example, this can happen when a value is read or written off the
  * end of an array.
  */
@@ -55,10 +55,10 @@ class Heap {
   /**
    * Allocates a zero-initialized block of memory of the given size.
    *
-   * @returns address of the allocated memory.
+   * @returns uintptr_t of the allocated memory.
    * @throws AllocationError if the block couldn't be allocated.
    */
-  void* allocate(word_t size);
+  void* allocate(uintptr_t size);
 
   /**
    * Notifies the garbage collector that a pointer was written into a block.
@@ -67,14 +67,14 @@ class Heap {
    * is freshly allocated, i.e., nothing else has been allocated later and no
    * pointer to that block has been stored.
    */
-  static void recordWrite(address from, address to);
+  static void recordWrite(uintptr_t from, uintptr_t to);
 
   template <class T>
   static void recordWrite(T** from, T* to);
 
-  static void checkBound(address base, word_t offset);
-  static address blockContaining(address p);
-  static word_t blockSize(address p);
+  static void checkBound(uintptr_t base, uintptr_t offset);
+  static uintptr_t blockContaining(uintptr_t p);
+  static uintptr_t blockSize(uintptr_t p);
 
   /** Reclaim memory used by blocks that are no longer reachable. */
   void collectGarbage();
@@ -92,7 +92,7 @@ extern Heap* heap;
 
 template <class T>
 void Heap::recordWrite(T** from, T* to) {
-  recordWrite(reinterpret_cast<address>(from), reinterpret_cast<address>(to));
+  recordWrite(reinterpret_cast<uintptr_t>(from), reinterpret_cast<uintptr_t>(to));
 }
 
 }  // namespace codeswitch

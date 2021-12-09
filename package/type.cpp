@@ -10,7 +10,7 @@
 
 namespace codeswitch {
 
-word_t Type::size() const {
+uintptr_t Type::size() const {
   switch (kind_) {
     case UNIT:
       return 0;
@@ -27,7 +27,7 @@ bool Type::operator==(const Type& other) const {
   return kind_ == other.kind_;
 }
 
-word_t Type::hash() const {
+uintptr_t Type::hash() const {
   return std::hash<int>{}(kind_);
 }
 

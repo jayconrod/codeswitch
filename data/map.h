@@ -14,7 +14,7 @@ namespace codeswitch {
 
 template <class K>
 class HashRef {
-  static word_t hash(const K& key) { return key->hash(); }
+  static uintptr_t hash(const K& key) { return key->hash(); }
   static bool equal(const K& l, const K& r) { return *l == *r; }
 };
 
@@ -24,32 +24,32 @@ class Map {
   static Map* make();
 
   bool empty() const { return length() == 0; }
-  length_t length() const { return length_; }
-  length_t cap() const { return cap_; }
+  size_t length() const { return length_; }
+  size_t cap() const { return cap_; }
   bool has(const K& key) const;
   const V& get(const K& key) const { return const_cast<Map<K, V, H>*>(this)->get(key); }
   V& get(const K& key);
   void set(const K& key, const V& value);
 
  protected:
-  static const word_t kMinCap = 16;
-  static const word_t kUnused = 0;
+  static const uintptr_t kMinCap = 16;
+  static const uintptr_t kUnused = 0;
   struct Entry {
-    word_t hash;  // in use if non-zero
+    uintptr_t hash;  // in use if non-zero
     K key;
     V value;
   };
 
-  word_t mask() const { return cap_ - 1; }
-  static word_t hash(const K& key);
-  void resize(length_t newCap);
-  const Entry* find(const K& key, word_t h) const { return const_cast<Map<K, V, H>*>(this)->find(key, h); }
-  Entry* find(const K& key, word_t h);
-  Entry* findOrAdd(const K& key, word_t h);
+  uintptr_t mask() const { return cap_ - 1; }
+  static uintptr_t hash(const K& key);
+  void resize(size_t newCap);
+  const Entry* find(const K& key, uintptr_t h) const { return const_cast<Map<K, V, H>*>(this)->find(key, h); }
+  Entry* find(const K& key, uintptr_t h);
+  Entry* findOrAdd(const K& key, uintptr_t h);
 
   Ptr<Array<Entry>> data_;
-  length_t length_ = 0;
-  length_t cap_ = 0;  // number of entries; 0 or power of 2
+  size_t length_ = 0;
+  size_t cap_ = 0;  // number of entries; 0 or power of 2
 };
 
 template <class K, class V, class H>
@@ -76,7 +76,7 @@ void Map<K, V, H>::set(const K& key, const V& value) {
 }
 
 template <class K, class V, class H>
-void Map<K, V, H>::resize(length_t newCap) {
+void Map<K, V, H>::resize(size_t newCap) {
   ASSERT(newCap >= length_);
   ASSERT(isPowerOf2(newCap));
   if (newCap == 0) {
@@ -91,7 +91,7 @@ void Map<K, V, H>::resize(length_t newCap) {
   length_ = 0;
   cap_ = newCap;
 
-  for (length_t i = 0; i < oldCap; i++) {
+  for (size_t i = 0; i < oldCap; i++) {
     auto oldE = &oldData->at(i);
     if (oldE->hash != kUnused) {
       auto e = this->findOrAdd(oldE->key, oldE->hash);
@@ -101,12 +101,12 @@ void Map<K, V, H>::resize(length_t newCap) {
 }
 
 template <class K, class V, class H>
-typename Map<K, V, H>::Entry* Map<K, V, H>::find(const K& key, word_t h) {
+typename Map<K, V, H>::Entry* Map<K, V, H>::find(const K& key, uintptr_t h) {
   if (length_ == 0) {
     return nullptr;
   }
   auto start = h & mask();
-  for (word_t i = 0; i < cap_; i++) {
+  for (uintptr_t i = 0; i < cap_; i++) {
     auto e = &data_->at((start + i) & mask());
     if (e->hash == kUnused) {
       return nullptr;
@@ -118,13 +118,13 @@ typename Map<K, V, H>::Entry* Map<K, V, H>::find(const K& key, word_t h) {
 }
 
 template <class K, class V, class H>
-typename Map<K, V, H>::Entry* Map<K, V, H>::findOrAdd(const K& key, word_t h) {
+typename Map<K, V, H>::Entry* Map<K, V, H>::findOrAdd(const K& key, uintptr_t h) {
   if (cap_ == 0) {
     resize(kMinCap);
   }
 
   auto start = h & mask();
-  for (word_t i = 0; i < cap_; i++) {
+  for (uintptr_t i = 0; i < cap_; i++) {
     auto e = &data_->at((start + i) & mask());
     if (e->hash == kUnused) {
       if (length_ * 2 < cap_) {
@@ -144,7 +144,7 @@ typename Map<K, V, H>::Entry* Map<K, V, H>::findOrAdd(const K& key, word_t h) {
 }
 
 template <class K, class V, class H>
-word_t Map<K, V, H>::hash(const K& key) {
+uintptr_t Map<K, V, H>::hash(const K& key) {
   auto h = H::hash(key);
   if (h == Map<K, V, H>::kUnused) {
     h++;

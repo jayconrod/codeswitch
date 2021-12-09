@@ -18,7 +18,7 @@ namespace codeswitch {
 
 struct ValidationBlock {
   std::vector<Type*> types;
-  length_t begin = 0, end = 0;
+  size_t begin = 0, end = 0;
   bool live = false;
 
   static bool less(const ValidationBlock& l, const ValidationBlock& r) { return l.begin < r.begin; }
@@ -34,12 +34,12 @@ void Function::validate(Handle<Package>& package) {
   auto checkBranch = [this, &blocks, &blockStack](const Inst* inst, int32_t rel, std::vector<Type*>&& types) {
     int32_t instOffset = inst - insts.begin();
     if (addWouldOverflow(rel, instOffset) || instOffset + rel < 0 ||
-        static_cast<length_t>(instOffset + rel) >= insts.length()) {
+        static_cast<size_t>(instOffset + rel) >= insts.length()) {
       throw ValidateError("", name.str(),
                           buildString("at offset ", instOffset, ", instruction ", inst->mnemonic(),
                                       " has target offset ", rel, " out of range"));
     }
-    auto targetOffset = static_cast<length_t>(instOffset + rel);
+    auto targetOffset = static_cast<size_t>(instOffset + rel);
     ValidationBlock b{.begin = targetOffset};
     auto it = std::lower_bound(blocks.begin(), blocks.end(), b, ValidationBlock::less);
     if (it == blocks.end() || it->begin != targetOffset) {
@@ -95,7 +95,7 @@ void Function::validate(Handle<Package>& package) {
     auto types = block.types;
     auto done = false;
     for (auto inst = insts.begin() + block.begin; !done && inst != insts.end(); inst = inst->next()) {
-      if (inst->size() > static_cast<length_t>(insts.end() - inst)) {
+      if (inst->size() > static_cast<size_t>(insts.end() - inst)) {
         throw ValidateError("", name.str(), buildString("at offset ", inst - insts.begin(), ", truncated instruction"));
       }
       switch (inst->op) {
@@ -154,7 +154,7 @@ void Function::validate(Handle<Package>& package) {
                                             " instruction has invalid function index ", functionIndex));
           }
           auto callee = package->functionByIndex(functionIndex);
-          for (length_t i = 0, n = callee->paramTypes.length(); i < n; i++) {
+          for (size_t i = 0, n = callee->paramTypes.length(); i < n; i++) {
             checkType(inst, types, callee->paramTypes[i].get(), n - i - 1, n);
           }
           types.erase(types.end() - callee->paramTypes.length(), types.end());
@@ -248,7 +248,7 @@ void Function::validate(Handle<Package>& package) {
         }
 
         case Op::RET: {
-          for (length_t i = 0, n = returnTypes.length(); i < n; i++) {
+          for (size_t i = 0, n = returnTypes.length(); i < n; i++) {
             checkType(inst, types, returnTypes[i].get(), n - i - 1, n);
           }
           blocks[index].end = inst->next() - insts.begin();
@@ -327,7 +327,7 @@ void Function::validate(Handle<Package>& package) {
   }
 
   // Make sure there's no dead space inside the function.
-  length_t prevEnd = 0;
+  size_t prevEnd = 0;
   for (auto& b : blocks) {
     if (b.begin != prevEnd) {
       throw ValidateError(

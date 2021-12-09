@@ -32,16 +32,16 @@ TEST(IsPowerOf2) {
   ASSERT_TRUE(isPowerOf2(1));
   ASSERT_TRUE(isPowerOf2(2));
   ASSERT_FALSE(isPowerOf2(3));
-  ASSERT_TRUE(isPowerOf2(static_cast<word_t>(1) << static_cast<word_t>(31)));
+  ASSERT_TRUE(isPowerOf2(static_cast<uintptr_t>(1) << static_cast<uintptr_t>(31)));
 }
 
 TEST(NextPowerOf2) {
-  ASSERT_EQ(nextPowerOf2(0), static_cast<word_t>(1));
-  ASSERT_EQ(nextPowerOf2(1), static_cast<word_t>(1));
-  ASSERT_EQ(nextPowerOf2(2), static_cast<word_t>(2));
-  ASSERT_EQ(nextPowerOf2(3), static_cast<word_t>(4));
-  ASSERT_EQ(nextPowerOf2(4), static_cast<word_t>(4));
-  ASSERT_EQ(nextPowerOf2(5), static_cast<word_t>(8));
+  ASSERT_EQ(nextPowerOf2(0), static_cast<uintptr_t>(1));
+  ASSERT_EQ(nextPowerOf2(1), static_cast<uintptr_t>(1));
+  ASSERT_EQ(nextPowerOf2(2), static_cast<uintptr_t>(2));
+  ASSERT_EQ(nextPowerOf2(3), static_cast<uintptr_t>(4));
+  ASSERT_EQ(nextPowerOf2(4), static_cast<uintptr_t>(4));
+  ASSERT_EQ(nextPowerOf2(5), static_cast<uintptr_t>(8));
 }
 
 }  // namespace codeswitch

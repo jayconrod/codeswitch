@@ -11,14 +11,14 @@
 namespace codeswitch {
 
 const int kWordCount = 2;
-word_t testData[kWordCount] = {0x12345678, 0x9abcdef0};
+uintptr_t testData[kWordCount] = {0x12345678, 0x9abcdef0};
 
 TEST(BitmapAccess) {
   Bitmap bitmap(testData, kWordCount * kBitsInWord);
   ASSERT_EQ(testData, bitmap.base());
   ASSERT_EQ(2 * kBitsInWord, bitmap.bitCount());
-  for (word_t i = 0; i < kWordCount; i++) {
-    for (word_t j = 0; j < kBitsInWord; j++) {
+  for (uintptr_t i = 0; i < kWordCount; i++) {
+    for (uintptr_t j = 0; j < kBitsInWord; j++) {
       bool expected = ((testData[i] >> j) & 1) == 1;
       ASSERT_EQ(expected, bitmap.at(i * kBitsInWord + j));
       ASSERT_EQ(expected, bitmap[i * kBitsInWord + j]);
@@ -35,7 +35,7 @@ TEST(BitmapMutation) {
   bitmap.set(3, false);
   ASSERT_EQ(false, bitmap[3]);
   bitmap.clear();
-  for (word_t i = 0; i < kWordCount * kBitsInWord; i++) {
+  for (uintptr_t i = 0; i < kWordCount * kBitsInWord; i++) {
     ASSERT_EQ(false, bitmap[i]);
   }
 }
