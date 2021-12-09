@@ -13,6 +13,7 @@
 
 #include "common/common.h"
 #include "flag/flag.h"
+#include "memory/heap.h"
 
 int main(int argc, char* argv[]) {
   codeswitch::FlagSet flags("test", "test [-run=testname]");
@@ -53,6 +54,7 @@ bool TestRunner::Run() {
     if (!t.passed()) {
       passedAll = false;
     }
+    heap->validate();
   }
   return passedAll;
 }

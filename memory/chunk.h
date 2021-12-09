@@ -38,12 +38,24 @@ const uintptr_t kMaxBlockSize = 128 * KB;
 
 /**
  * A Chunk is an aligned region of memory allocated from the kernel using mmap
- * or a similar mechanism.
+ * or a similar mechanism. A chunk holds blocks of the same size, which may
+ * be allocated by the heap.
  *
- * The heap is composed of chunks. Each chunk contains a header, an allocation
- * bitmap (one bit per block), a marking bitmap (one bit per block), a pointer
- * bitmap (one bit per word), and a set of blocks of fixed size that can be
- * allocated.
+ * The heap is composed of chunks. Each chunk contains a header, a pointer
+ * bitmap (one bit per word) indicating which words contain pointers, a
+ * marking bitmap (one bit per word, though only the first bit for each
+ * block is used) used by the garbage collector, and a contiguous data
+ * section comprising blocks of the same size.
+ * 
+ * Within the data section, each chunk has a free list and a free section.
+ * The free list is a singly linked list of free blocks. The first word in
+ * each block is a pointer to the next free block or 0 if there are no more.
+ * Other words in free blocks are 0, and pointer and mark bits are clear.
+ * The free section is a contiguous set of free blocks at the end of the
+ * chunk. All words in the free section are zero, and pointer and mark bits
+ * are clear. When a chunk is initially allocated, the free section takes up
+ * the whole data section. Ideally, it doesn't even need physical pages
+ * backing it.
  */
 class Chunk {
  public:
@@ -54,64 +66,134 @@ class Chunk {
   void operator delete(void* addr);
   explicit Chunk(uintptr_t blockSize);
 
-  static Chunk* fromAddress(const void* p);
+  static Chunk* fromAddress(const void* p) { return fromAddress(reinterpret_cast<uintptr_t>(p)); }
+
+  /**
+   * Returns the chunk containing a given address, assuming it belongs to
+   * a chunk. Chunks are aligned in memory, so this works by masking off
+   * the low bits of the address.
+   */
   static Chunk* fromAddress(uintptr_t addr);
 
+  /**
+   * Returns the size of blocks allocated from this chunk. All blocks within
+   * the chunk are the same size.
+   */
   uintptr_t blockSize() const { return blockSize_; }
-  uintptr_t blockContaining(uintptr_t p);
 
+  /** Returns the address of a block containing a given address. */
+  uintptr_t blockContaining(uintptr_t addr);
+
+  /**
+   * Returns the number of bytes allocated from this chunk. This doesn't
+   * include chunk overhead like the header and bitmaps. It also doesn't
+   * count free blocks.
+   */
+  uintptr_t bytesAllocated() const { return bytesAllocated_; }
+
+  /**
+   * Allocates an unused block, either from the free list or free section
+   * and returns it. Returns 0 if there are no unallocated blocks.
+   */
   uintptr_t allocate();
 
+  /**
+   * Returns whether an address has been marked as a pointer
+   * with setPointer. addr must be a word-aligned address on this chunk.
+   */
+  bool isPointer(uintptr_t addr);
+
+  /**
+   * Marks an address as a pointer. addr must be a word-aligned address
+   * on this chunk.
+   */
+  void setPointer(uintptr_t addr);
+
+  /**
+   * Returns whether an address has been marked as live with setMarked. addr
+   * must be the address of a block on this chunk.
+   */
+  bool isMarked(uintptr_t addr);
+
+  /**
+   * Marks an address as live. addr must be the address of a block on
+   * this chunk.
+   */
+  void setMarked(uintptr_t addr);
+
+  /** Returns whether any block on this chunk has been marked as live. */
+  bool hasMark();
+
+  /**
+   * Frees blocks on this chunk not marked as live. Any blocks not marked
+   * with setMarked are added to the free list or the free section at the end.
+   * Their contents are zeroed, and their pointer bits are cleared.
+   * All mark bits are cleared. The number of bytes allocated is recalculated.
+   */
+  void sweep();
+
+  /** Checks heap invariants on this chunk. Used for debugging and testing. */
+  void validate();
+
+  // Bitmap and data constants.
+  //
+  // The header is followed by two bitmaps, taking the first 32 KiB of the
+  // chunk. Actually the bitmaps overlap with the header: each bit corresponds
+  // to a word in the chunk, and the bits corresponding to the words of the
+  // bitmaps themselves are not used.
+  //
+  // The first bitmap contains bits indicating which words in the chunk are
+  // pointers. These are set by write barriers.
+  //
+  // The second bitmap contains marking bits set by the garbage collector.
+  // sweep frees unmarked blocks.
+  static const uintptr_t kWordsInChunk = kSize / kWordSize;
+  static const uintptr_t kBitmapSizeInBytes = kWordsInChunk * 2 / 8;
+  static const uintptr_t kDataOffset = kBitmapSizeInBytes;
+  static const uintptr_t kDataSize = kSize - kDataOffset;
+
  private:
+  Bitmap pointerBitmapLocked();
+  Bitmap markBitmapLocked();
+  bool isPointerLocked(uintptr_t addr);
+  bool isMarkedLocked(uintptr_t addr);
+
   // Header section. Make sure kHeaderSize matches.
 
   /** mu_ guards the header and bitmap. */
   std::mutex mu_;
 
   /**
-   * blockSize_ is the size in bytes of each block. Must be a multiple of
+   * Size in bytes of all blocks on this chunk. Must be a multiple of
    * kBlockAlignment.
    */
   uintptr_t blockSize_;
 
   /**
-   * free_ points to the head of a singly linked list of blocks in this chunk
-   * freed by the garbage collector.
+   * Bytes allocated on this chunk. Used for the garbage collector's accounting.
    */
-  uintptr_t free_;
+  uintptr_t bytesAllocated_;
 
   /**
-   * nextFree_ points to the first block in the free space at the end of
-   * the chunk.
+   * Head of a singly linked list of blocks freed by the garbage collector.
+   * Should be allocated before free space.
    */
-  uintptr_t nextFree_;
+  uintptr_t freeList_;
 
-  static const uintptr_t kHeaderSize = sizeof(mu_) + sizeof(blockSize_) + sizeof(free_) + sizeof(nextFree_);
+  /**
+   * Address of a contiguous set of free blocks at the end of the chunk.
+   * Initially, this takes up the entire chunk. Always contains zeroes with
+   * no pointer or mark bits set.
+   */
+  uintptr_t freeSpace_;
+
+  static const uintptr_t kHeaderSize =
+      sizeof(mu_) + sizeof(blockSize_) + sizeof(bytesAllocated_) + sizeof(freeList_) + sizeof(freeSpace_);
 
   uint8_t pad_[kSize - kHeaderSize];
-
-  // Bitmap and data constants.
-  //
-  // The marking bitmap follows the header. The marking bitmap contains at least
-  // two bits per 8 bytes in the data section. The low bit indicates whether
-  // the corresponding block is marked (only the first word in the block is
-  // marked). The high bit indicates whether the word contains a pointer and
-  // is set by write barriers.
-  //
-  // The data section follows the marking bitmap. It does not contain any
-  // heap metadata.
-  static const uintptr_t kDataOffset = 16 * KB;
-  static const uintptr_t kBitmapOffset = align(kHeaderSize, kWordSize);
-  static const uintptr_t kBitmapCount = (kDataOffset - kBitmapOffset) * 8;
-  static const uintptr_t kDataSize = kBitmapCount / 2 * kBlockAlignment;
-  static const uintptr_t kDataEndOffset = kDataOffset + kDataSize;
 };
 
 static_assert(sizeof(Chunk) == Chunk::kSize, "Chunk does not have expected size");
-
-inline Chunk* Chunk::fromAddress(const void* p) {
-  return fromAddress(reinterpret_cast<uintptr_t>(p));
-}
 
 inline Chunk* Chunk::fromAddress(uintptr_t addr) {
   return reinterpret_cast<Chunk*>(addr & ~(kSize - 1));
@@ -126,25 +208,65 @@ inline uintptr_t Chunk::blockContaining(uintptr_t p) {
 /** Attempts to allocate a free block. Returns 0 if no blocks are free. */
 inline uintptr_t Chunk::allocate() {
   std::lock_guard<std::mutex> lock(mu_);
-  if (free_ != 0) {
-    auto block = free_;
-    auto next = reinterpret_cast<uintptr_t*>(free_);
-    free_ = *next;
+  if (freeList_ != 0) {
+    auto block = freeList_;
+    auto next = reinterpret_cast<uintptr_t*>(freeList_);
+    freeList_ = *next;
     *next = 0;
+    bytesAllocated_ += blockSize_;
     return block;
   }
 
-  if (nextFree_ != 0) {
-    auto block = nextFree_;
-    auto next = nextFree_ + blockSize_;
-    if (next - reinterpret_cast<uintptr_t>(this) >= kDataEndOffset) {
-      next = 0;
-    }
-    nextFree_ = next;
+  if (freeSpace_ + blockSize_ <= reinterpret_cast<uintptr_t>(this) + kSize) {
+    auto block = freeSpace_;
+    freeSpace_ += blockSize_;
+    bytesAllocated_ += blockSize_;
     return block;
   }
 
   return 0;
+}
+
+inline Bitmap Chunk::pointerBitmapLocked() {
+  auto base = reinterpret_cast<uintptr_t*>(this);
+  return Bitmap(base, kBitmapSizeInBytes * 8 / 2);
+}
+
+inline Bitmap Chunk::markBitmapLocked() {
+  auto base = reinterpret_cast<uintptr_t*>(reinterpret_cast<uintptr_t>(this) + kBitmapSizeInBytes / 2);
+  return Bitmap(base, kBitmapSizeInBytes * 8 / 2);
+}
+
+inline bool Chunk::isPointer(uintptr_t addr) {
+  std::lock_guard lock(mu_);
+  return isPointerLocked(addr);
+}
+
+inline void Chunk::setPointer(uintptr_t addr) {
+  std::lock_guard lock(mu_);
+  auto index = (addr - reinterpret_cast<uintptr_t>(this)) / kWordSize;
+  pointerBitmapLocked().set(index, true);
+}
+
+inline bool Chunk::isMarked(uintptr_t addr) {
+  std::lock_guard lock(mu_);
+  return isMarkedLocked(addr);
+}
+
+inline void Chunk::setMarked(uintptr_t addr) {
+  std::lock_guard lock(mu_);
+  auto index = (addr - reinterpret_cast<uintptr_t>(this)) / kWordSize;
+  markBitmapLocked().set(index, true);
+}
+
+inline bool Chunk::isPointerLocked(uintptr_t addr) {
+  auto index = (addr - reinterpret_cast<uintptr_t>(this)) / kWordSize;
+  return pointerBitmapLocked()[index];
+}
+
+inline bool Chunk::isMarkedLocked(uintptr_t addr) {
+  auto index = (addr - reinterpret_cast<uintptr_t>(this)) / kWordSize;
+  return markBitmapLocked()[index];
 }
 
 }  // namespace codeswitch

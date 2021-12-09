@@ -54,7 +54,7 @@ class alignas(uintptr_t) Ptr {
   T* operator->() { return p_; }
   void set(T* q) {
     p_ = q;
-    Heap::recordWrite(&p_, q);
+    heap->recordWrite(&p_, q);
   }
 
   template <class S>
