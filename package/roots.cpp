@@ -5,7 +5,9 @@
 
 #include "roots.h"
 
+#include "memory/handle.h"
 #include "memory/heap.h"
+#include "memory/stack.h"
 #include "type.h"
 
 namespace codeswitch {
@@ -21,15 +23,24 @@ Roots* roots;
 // leave it out if none of its symbols are used.
 __attribute__((constructor)) void init() {
   heap = new Heap;
+  handleStorage = new HandleStorage;
+  stackPool = new StackPool;
   roots = new Roots;
 }
 
 Roots::Roots() {
-  heap->gcLock();
+  heap->setGCLock(true);
   unitType = Type::make(Type::UNIT);
   boolType = Type::make(Type::BOOL);
   int64Type = Type::make(Type::INT64);
-  heap->gcUnlock();
+  heap->registerRoots(std::bind(&Roots::accept, this, std::placeholders::_1));
+  heap->setGCLock(false);
+}
+
+void Roots::accept(std::function<void(uintptr_t)> visit) {
+  visit(reinterpret_cast<uintptr_t>(unitType));
+  visit(reinterpret_cast<uintptr_t>(boolType));
+  visit(reinterpret_cast<uintptr_t>(int64Type));
 }
 
 }  // namespace codeswitch

@@ -6,6 +6,9 @@
 #ifndef memory_stack_h
 #define memory_stack_h
 
+#include <deque>
+#include <functional>
+#include <mutex>
 #include "common/common.h"
 
 namespace codeswitch {
@@ -24,14 +27,15 @@ struct Frame {
 class Stack {
  public:
   Stack();
-  ~Stack();
   NON_COPYABLE(Stack)
+  ~Stack();
 
   uintptr_t start() const { return start_; }
   uintptr_t limit() const { return limit_; }
   inline void check(size_t n);
 
   Frame* frame() const { return reinterpret_cast<Frame*>(fp); }
+  void accept(std::function<void(uintptr_t)> visit);
 
   template <class T>
   void push(const T& v);
@@ -45,6 +49,23 @@ class Stack {
  private:
   uintptr_t start_, limit_;
 };
+
+class StackPool {
+ public:
+  StackPool();
+
+  Stack* get();
+  void put(Stack* stack);
+
+  void accept(std::function<void(uintptr_t)> visit);
+
+ private:
+  // TODO: support more than one stack.
+  Stack stack_;
+  bool used_ = false;
+};
+
+extern StackPool* stackPool;
 
 class StackOverflowError : public std::exception {
  public:

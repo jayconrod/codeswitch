@@ -6,6 +6,7 @@
 #ifndef package_roots_h
 #define package_roots_h
 
+#include <functional>
 #include "common/common.h"
 
 namespace codeswitch {
@@ -16,6 +17,8 @@ class Roots {
  public:
   Roots();
   NON_COPYABLE(Roots)
+
+  void accept(std::function<void(uintptr_t)> visit);
 
   Type* unitType = nullptr;
   Type* boolType = nullptr;

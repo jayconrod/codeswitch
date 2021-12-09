@@ -6,12 +6,19 @@
 #include "handle.h"
 
 #include <deque>
+#include <functional>
 #include <mutex>
 #include "common/common.h"
 
 namespace codeswitch {
 
-HandleStorage handleStorage;
+HandleStorage* handleStorage;
+
+HandleStorage::HandleStorage() {
+  heap->setGCLock(true);
+  heap->registerRoots(std::bind(&HandleStorage::accept, this, std::placeholders::_1));
+  heap->setGCLock(false);
+}
 
 uintptr_t HandleStorage::allocSlot() {
   std::lock_guard<std::mutex> lock(mu_);
@@ -30,6 +37,14 @@ void HandleStorage::freeSlot(uintptr_t slot) {
   std::lock_guard<std::mutex> lock(mu_);
   *reinterpret_cast<uintptr_t*>(slot) = free_ | 1;
   free_ = slot;
+}
+
+void HandleStorage::accept(std::function<void(uintptr_t)> accept) {
+  for (auto slot : slots_) {
+    if ((slot & 1) == 0) {
+      accept(slot);
+    }
+  }
 }
 
 }  // namespace codeswitch

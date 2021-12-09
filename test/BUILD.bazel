@@ -8,6 +8,7 @@ cc_library(
     deps = [
         "//common",
         "//flag",
+        "//memory",  # for heap validation
         "//package",  # for init
     ],
 )

@@ -7,6 +7,7 @@
 #define memory_handle_h
 
 #include <deque>
+#include <functional>
 #include <mutex>
 #include "common/common.h"
 #include "ptr.h"
@@ -58,8 +59,12 @@ Handle<T> handle(T* block) {
  */
 class HandleStorage {
  public:
+  HandleStorage();
+
   uintptr_t allocSlot();
   void freeSlot(uintptr_t slot);
+
+  void accept(std::function<void(uintptr_t)> visit);
 
  private:
   std::mutex mu_;
@@ -67,17 +72,17 @@ class HandleStorage {
   uintptr_t free_ = 0;
 };
 
-extern HandleStorage handleStorage;
+extern HandleStorage* handleStorage;
 
 template <class T>
-Handle<T>::Handle(T* block) : slot_(reinterpret_cast<T**>(handleStorage.allocSlot())) {
+Handle<T>::Handle(T* block) : slot_(reinterpret_cast<T**>(handleStorage->allocSlot())) {
   *slot_ = block;
 }
 
 template <class T>
 Handle<T>::Handle(const Handle<T>& handle) {
   if (handle.slot_ != nullptr) {
-    slot_ = reinterpret_cast<Ptr<T>*>(handleStorage.allocSlot());
+    slot_ = reinterpret_cast<Ptr<T>*>(handleStorage->allocSlot());
     *slot_ = *handle.slot_;
   }
 }
@@ -90,7 +95,7 @@ Handle<T>::Handle(Handle<T>&& handle) : slot_(handle.slot_) {
 template <class T>
 Handle<T>::~Handle() {
   if (slot_ != nullptr) {
-    handleStorage.freeSlot(reinterpret_cast<uintptr_t>(slot_));
+    handleStorage->freeSlot(reinterpret_cast<uintptr_t>(slot_));
   }
 }
 
@@ -98,12 +103,12 @@ template <class T>
 Handle<T>& Handle<T>::operator=(const Handle<T>& handle) {
   if (handle.slot_ == nullptr) {
     if (slot_ != nullptr) {
-      handleStorage.freeSlot(reinterpret_cast<uintptr_t>(slot_));
+      handleStorage->freeSlot(reinterpret_cast<uintptr_t>(slot_));
       slot_ = nullptr;
     }
   } else {
     if (slot_ == nullptr) {
-      slot_ = reinterpret_cast<T**>(handleStorage.allocSlot());
+      slot_ = reinterpret_cast<T**>(handleStorage->allocSlot());
     }
     *slot_ = *handle.slot_;
   }
@@ -113,7 +118,7 @@ Handle<T>& Handle<T>::operator=(const Handle<T>& handle) {
 template <class T>
 Handle<T>& Handle<T>::operator=(Handle<T>&& handle) {
   if (slot_ != nullptr) {
-    handleStorage.freeSlot(reinterpret_cast<uintptr_t>(slot_));
+    handleStorage->freeSlot(reinterpret_cast<uintptr_t>(slot_));
   }
   slot_ = handle.slot_;
   handle.slot_ = nullptr;
@@ -123,7 +128,7 @@ Handle<T>& Handle<T>::operator=(Handle<T>&& handle) {
 template <class T>
 void Handle<T>::reset() {
   if (slot_ != nullptr) {
-    handleStorage.freeSlot(reinterpret_cast<uintptr_t>(slot_));
+    handleStorage->freeSlot(reinterpret_cast<uintptr_t>(slot_));
   }
   slot_ = nullptr;
 }
