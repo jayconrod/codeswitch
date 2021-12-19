@@ -13,6 +13,7 @@
 #include "inst.h"
 #include "memory/handle.h"
 #include "package.h"
+#include "function.h"
 
 namespace codeswitch {
 
@@ -43,7 +44,7 @@ class Label {
 class Assembler {
  public:
   Assembler();
-  Handle<List<Inst>> finish();
+  void finish(Handle<Function>& f);
 
   void bind(Label* label);
 
@@ -103,6 +104,7 @@ class Assembler {
   };
 
   std::deque<Fragment> fragments_;
+  SafepointBuilder safepointBuilder_;
   size_t size_ = 0;
 };
 

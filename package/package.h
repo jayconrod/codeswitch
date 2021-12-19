@@ -82,10 +82,12 @@ struct FunctionEntry {
   uint32_t returnTypeCount;
   uint64_t instOffset;
   uint32_t instSize;
-  uint32_t frameSize;
+  uint64_t safepointOffset;
+  uint32_t safepointCount;
+  uint16_t frameSize;
 };
 
-const uintptr_t kFunctionEntrySize = 44;
+const uintptr_t kFunctionEntrySize = 54;
 
 struct StringEntry {
   uint64_t offset;

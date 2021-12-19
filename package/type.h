@@ -26,6 +26,7 @@ class Type {
 
   Kind kind() const { return kind_; }
   uintptr_t size() const;
+  uint16_t stackSlotSize() const;
   bool operator==(const Type& other) const;
   bool operator!=(const Type& other) const { return !(*this == other); }
   uintptr_t hash() const;

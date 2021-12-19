@@ -23,6 +23,10 @@ uintptr_t Type::size() const {
   return ~0;
 }
 
+uint16_t Type::stackSlotSize() const {
+  return static_cast<uint16_t>(align(size(), kWordSize) / kWordSize);
+}
+
 bool Type::operator==(const Type& other) const {
   return kind_ == other.kind_;
 }
