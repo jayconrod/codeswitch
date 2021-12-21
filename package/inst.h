@@ -84,6 +84,7 @@ class Inst {
 
   const char* mnemonic() const;
   inline uintptr_t size() const;
+  inline bool mayAllocate() const;
   const Inst* next() const { return const_cast<Inst*>(this)->next(); }
   Inst* next() { return this + size(); }
 };
@@ -133,6 +134,15 @@ uintptr_t Inst::size() const {
   }
   UNREACHABLE();
   return 0;
+}
+
+bool Inst::mayAllocate() const {
+  switch (op) {
+    case Op::CALL:
+      return true;
+    default:
+      return false;
+  }
 }
 
 /**

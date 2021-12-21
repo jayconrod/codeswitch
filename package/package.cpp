@@ -153,14 +153,18 @@ void Package::writeToFile(const filesystem::path& filename) {
     }
   }
 
-  // Build an offset list of instructions referenced by functions. This is
-  // simpler than the above because there's no deduplication.
+  // Build an offset list of instructions and safepoints referenced by
+  // functions. This is simpler than the above because there's no deduplication.
   std::vector<uint64_t> instOffsets;
   instOffsets.reserve(functions_.length());
-  uint64_t lastInstOffset = 0;
+  std::vector<uint64_t> safepointOffsets;
+  safepointOffsets.reserve(functions_.length());
+  uint64_t lastFunctionDataOffset = 0;
   for (auto& f : functions_) {
-    instOffsets.push_back(lastInstOffset);
-    lastInstOffset += f->insts.length();
+    instOffsets.push_back(lastFunctionDataOffset);
+    lastFunctionDataOffset += f->insts.length();
+    safepointOffsets.push_back(lastFunctionDataOffset);
+    lastFunctionDataOffset += f->safepoints.data().length();
   }
 
   // Assemble headers, figure out where everything is and how big it will be.
@@ -173,7 +177,7 @@ void Package::writeToFile(const filesystem::path& filename) {
   auto functionSection = SectionHeader{
       .kind = SectionKind::FUNCTION,
       .offset = kFileHeaderSize + 3 * kSectionHeaderSize,
-      .size = functions_.length() * kFunctionEntrySize + lastInstOffset,
+      .size = functions_.length() * kFunctionEntrySize + lastFunctionDataOffset,
       .entryCount = narrow<uint32_t>(functions_.length()),
       .entrySize = kFunctionEntrySize,
   };
@@ -205,6 +209,7 @@ void Package::writeToFile(const filesystem::path& filename) {
   }
 
   // Write function section.
+  ASSERT(static_cast<uint64_t>(p - file.data) == functionSection.offset);
   for (size_t i = 0, n = functions_.length(); i < n; i++) {
     auto& f = functions_[i];
     FunctionEntry fe{
@@ -215,18 +220,23 @@ void Package::writeToFile(const filesystem::path& filename) {
         .returnTypeCount = narrow<uint32_t>(f->returnTypes.length()),
         .instOffset = instOffsets[i],
         .instSize = narrow<uint32_t>(f->insts.length()),
-        .frameSize = static_cast<uint32_t>(f->frameSize),
+        .safepointOffset = safepointOffsets[i],
+        .safepointCount = f->safepoints.length(),
+        .frameSize = static_cast<uint16_t>(f->safepoints.frameSize()),
     };
     writeFunctionEntry(&p, fe);
   }
   for (auto& f : functions_) {
     p = std::copy(reinterpret_cast<uint8_t*>(f->insts.begin()), reinterpret_cast<uint8_t*>(f->insts.end()), p);
+    p = std::copy(f->safepoints.data().begin(), f->safepoints.data().end(), p);
   }
 
   // Write type section.
+  ASSERT(static_cast<uint64_t>(p - file.data) == typeSection.offset);
   p = std::copy(typeData.begin(), typeData.end(), p);
 
   // Write string section.
+  ASSERT(static_cast<uint64_t>(p - file.data) == stringSection.offset);
   for (auto& e : stringEntries) {
     writeStringEntry(&p, e);
   }
@@ -274,12 +284,26 @@ Function* Package::functionByIndexLocked(size_t index) {
     throw errorstr(filename_, ": for function ", index, ", overflow computing end of instructions");
   }
   auto instEnd = instBegin + entry.instSize;
-  auto functionSectionEnd = reinterpret_cast<Inst*>(file_.data + functionSection_.offset + functionSection_.size);
-  if (instEnd > functionSectionEnd) {
+  auto functionSectionEnd = file_.data + functionSection_.offset + functionSection_.size;
+  if (instEnd > reinterpret_cast<Inst*>(functionSectionEnd)) {
     throw errorstr(filename_, ": for function ", index, ", end of instructions outside function section");
   }
   function->insts.resize(entry.instSize);
   std::copy(instBegin, instBegin + entry.instSize, function->insts.begin());
+  auto safepointsBegin = file_.data + functionSection_.offset + functionSection_.entryCount * functionSection_.entrySize + entry.safepointOffset;
+  auto safepointsSize = static_cast<uintptr_t>(Safepoints::bytesPerEntry(entry.frameSize)) * entry.safepointCount;
+  if (addWouldOverflow(reinterpret_cast<uintptr_t>(safepointsBegin), safepointsSize)) {
+    throw errorstr(filename_, ": for function ", index, ", overflow computing end of safepoints");
+  }
+  auto safepointsEnd = safepointsBegin + safepointsSize;
+  if (safepointsEnd > functionSectionEnd) {
+    throw errorstr(filename_, ": for function ", index, ", end of safepoints outside function section");
+  }
+  auto safepointsData = handle(new (heap->allocate(sizeof(BoundArray<uint8_t>))) BoundArray<uint8_t>);
+  safepointsData->init(Array<uint8_t>::make(safepointsSize), safepointsSize);
+  std::copy(safepointsBegin, safepointsEnd, safepointsData->begin());
+  function->safepoints.init(entry.frameSize, **safepointsData);
+
   return function;
 }
 
@@ -393,6 +417,8 @@ void Package::readFunctionEntry(uint8_t** p, FunctionEntry* e) {
   readBin(p, &e->returnTypeCount);
   readBin(p, &e->instOffset);
   readBin(p, &e->instSize);
+  readBin(p, &e->safepointOffset);
+  readBin(p, &e->safepointCount);
   readBin(p, &e->frameSize);
 }
 
@@ -404,6 +430,8 @@ void Package::writeFunctionEntry(uint8_t** p, FunctionEntry e) {
   writeBin(p, e.returnTypeCount);
   writeBin(p, e.instOffset);
   writeBin(p, e.instSize);
+  writeBin(p, e.safepointOffset);
+  writeBin(p, e.safepointCount);
   writeBin(p, e.frameSize);
 }
 

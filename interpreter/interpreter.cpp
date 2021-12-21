@@ -30,13 +30,14 @@ void interpret(Handle<Package>& package, Handle<Function>& entry, std::ostream& 
   auto fp = reinterpret_cast<Frame*>(s.fp) - 1;
   auto sp = reinterpret_cast<uintptr_t*>(fp);
 
-#define CHECK_STACK(size)                                   \
-  do {                                                      \
+#define CHECK_STACK(fn)                                       \
+  do {                                                        \
+    auto size = fn->safepoints.frameSize() * kWordSize;       \
     if (reinterpret_cast<uintptr_t>(sp) - size < s.limit()) { \
       s.sp = reinterpret_cast<uintptr_t>(sp);                 \
       s.fp = reinterpret_cast<uintptr_t>(fp);                 \
-      s.check(size);                                        \
-    }                                                       \
+      s.check(size);                                          \
+    }                                                         \
   } while (false)
 
 #define PUSH(x) *--sp = x
@@ -102,7 +103,7 @@ void interpret(Handle<Package>& package, Handle<Function>& entry, std::ostream& 
         fp = frame;
         sp = reinterpret_cast<uintptr_t*>(fp);
         ip = fn->insts.begin();
-        CHECK_STACK(fn->frameSize);
+        CHECK_STACK(fn);
         continue;
       }
 

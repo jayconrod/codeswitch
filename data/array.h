@@ -62,6 +62,8 @@ class BoundArray {
   const T& operator[](size_t i) const { return (*const_cast<BoundArray<T>*>(this))[i]; }
   T& operator[](size_t i);
 
+  const Array<T>* array() const { return const_cast<BoundArray<T>*>(this)->array(); }
+  Array<T>* array() { return array_.get(); }
   const T* begin() const { return const_cast<BoundArray<T>*>(this)->begin(); }
   T* begin() { return array_->begin(); }
   const T* end() const { return const_cast<BoundArray<T>*>(this)->end(); }

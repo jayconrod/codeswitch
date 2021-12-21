@@ -453,7 +453,14 @@ Handle<Package> PackageBuilder::build() {
   for (auto& f : file_.functions) {
     functions->append(*buildFunction(f));
   }
-  return handle(Package::make(**functions));
+
+  auto package = handle(Package::make(**functions));
+  for (auto& f : **functions) {
+    f->safepoints = **f->buildSafepoints(package);
+  }
+
+  package->validate();
+  return package;
 }
 
 struct LabelInfo {
@@ -474,7 +481,6 @@ Handle<Function> PackageBuilder::buildFunction(const AsmFunction& function) {
 
   Assembler a;
   std::unordered_map<std::string_view, LabelInfo> labels;
-  size_t frameSize = 0;  // TODO: compute the actual frame size.
   for (auto& inst : function.insts) {
     if (inst.label.kind == TokenKind::IDENT) {
       auto name = text(inst.label);
@@ -610,9 +616,13 @@ Handle<Function> PackageBuilder::buildFunction(const AsmFunction& function) {
     }
   }
 
-  auto insts = a.finish();
-  return handle(Function::make(**name, **returnTypes, **paramTypes, **insts, frameSize));
-}  // namespace codeswitch
+  auto fn = handle(new(heap->allocate(sizeof(Function))) Function);
+  fn->name = **name;
+  fn->paramTypes = **paramTypes;
+  fn->returnTypes = **returnTypes;
+  a.finish(fn);
+  return fn;
+}
 
 Handle<Type> PackageBuilder::buildType(const AsmType& type) {
   auto name = identToken(type.name);
@@ -690,12 +700,13 @@ Assembler::Assembler() {
   fragments_.emplace_back();
 }
 
-Handle<List<Inst>> Assembler::finish() {
-  auto l = List<Inst>::create(size_);
+void Assembler::finish(Handle<Function>& fn) {
+  fn->insts.resize(0);
+  fn->insts.reserve(size_);
   for (auto& f : fragments_) {
-    l->append(reinterpret_cast<Inst*>(f.begin), f.end - f.begin);
+    fn->insts.append(reinterpret_cast<Inst*>(f.begin), f.end - f.begin);
   }
-  return l;
+  safepointBuilder_.build(handle(&fn->safepoints));
 }
 
 void Assembler::bind(Label* label) {
